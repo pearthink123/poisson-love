@@ -195,6 +195,29 @@ It's not random chaos. It's not rigid scheduling. It's **structured spontaneity*
 
 ---
 
+## Testing
+
+```bash
+# Install test dependencies
+pip install -e ".[test]"
+
+# Run all tests
+pytest tests/ -v
+
+# Run specific module tests
+pytest tests/test_bayesian.py -v
+pytest tests/test_poisson_engine.py -v
+```
+
+101 tests covering:
+- 🎲 Poisson engine (determinism, growth, timing)
+- 🧠 Bayesian inference (state estimation, likelihood)
+- 📊 Information gain (decay, thresholds)
+- 🏁 Optimal stopping (threshold, secretary rule)
+- 💘 Unified API (full pipeline)
+
+---
+
 ## License
 
 MIT
