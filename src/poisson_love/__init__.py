@@ -1,15 +1,40 @@
 """
-poisson-love: Math-driven AI engagement engine.
-Turn missing someone into a measurable curve.
+poisson-love: Math models that make AI engagement feel human.
+
+Four models, one pipeline:
+1. Poisson process — randomized timing (like "thinking about you")
+2. Information gain — is this interaction worth it?
+3. PID controller — adaptive frequency based on user feedback
+4. Optimal stopping — best moment to intervene
+
+Quick start:
+    from poisson_love import PoissonLove, UserPreference, Style
+
+    love = PoissonLove(preference=UserPreference(style=Style.RESPECTFUL))
+    result = love.tick()
+
+    if result.should_send:
+        send_message(result.prompt)
 """
 
+from .love import PoissonLove, LoveResult
 from .core.engine import PoissonEngine
 from .core.config import Config
 from .core.models import TickResult, Action, LogEntry
-from .control import PIDController, Signal, CombinedSignal
+from .control import PIDController, Signal, CombinedSignal, UserPreference, Style, Response
+from .info_gain import InformationGain, SilenceDuration, ConversationFlow
+from .optimal_stop import OptimalStop, ThresholdRule, SecretaryRule
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 __all__ = [
+    # Unified API
+    "PoissonLove", "LoveResult",
+    # Core
     "PoissonEngine", "Config", "TickResult", "Action", "LogEntry",
-    "PIDController", "Signal", "CombinedSignal",
+    # Control
+    "PIDController", "Signal", "CombinedSignal", "UserPreference", "Style", "Response",
+    # Info Gain
+    "InformationGain", "SilenceDuration", "ConversationFlow",
+    # Optimal Stop
+    "OptimalStop", "ThresholdRule", "SecretaryRule",
 ]

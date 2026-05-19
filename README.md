@@ -1,45 +1,32 @@
 # Poisson Longing 🎲
 
-**Turn "thinking about you" into a measurable curve.**
+**Math models that make AI engagement feel human.**
 
 ![Poisson Longing Curve](assets/poisson_curve.png)
 
-*A 48-hour simulation. Blue zone = night (0-8am). Green dots = messages sent. Pink diamonds = hit but held back. Watch longing climb through the night — then reset at 8am.*
+*Turn "thinking about you" into a measurable, adaptive curve.*
 
 ---
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://python.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![PyPI](https://img.shields.io/badge/pip-poisson--love-green.svg)](https://pypi.org)
 
 ---
 
 ## The Problem
 
-AI assistants are either:
-
-| Approach | What happens | Why it fails |
-|----------|-------------|--------------|
-| **Fixed schedule** | Send at 9am, 2pm, 8pm daily | Becomes noise. Users learn to ignore it. |
-| **Pure random** | Random intervals | No memory. Could spam at 3am or go silent for days. |
-| **LLM decides** | AI picks when to reach out | No global frequency control. Inconsistent. |
+AI assistants are either **rigid** (fixed schedules) or **random** (no memory). Neither feels human.
 
 ## The Solution
 
-**Poisson Longing** uses a Poisson process with two-phase decision:
+Four math models working together:
 
-```
-Phase 1: Poisson dice → hit or miss
-Phase 2: Adjudication → send or hold back
-
-Miss  → longing probability grows
-Hold  → longing grows faster (suppressed)
-Send  → longing resets (satisfied)
-```
-
-The probability curve **IS** the longing. It's quantifiable, recordable, visualizable.
-
-> Don't let AI guess when to talk to you. Let math decide.
+| Stage | Model | Question | Answer |
+|-------|-------|----------|--------|
+| 🎲 **Timing** | Poisson process | When to consider? | Randomized like real "thinking of you" |
+| 📊 **Value** | Information theory | Is this worth it? | Skip if you already know user's state |
+| 🎯 **Adapt** | PID controller | How often? | Adjust based on user's response |
+| ⏱️ **Moment** | Optimal stopping | When to act? | Wait for the best signal |
 
 ---
 
@@ -50,29 +37,51 @@ pip install poisson-love
 ```
 
 ```python
-from poisson_love import PoissonEngine, Config
+from poisson_love import PoissonLove, UserPreference, Style
 
-config = Config.from_yaml("pcpx.yaml")
-engine = PoissonEngine(config)
+love = PoissonLove(
+    preference=UserPreference(
+        style=Style.RESPECTFUL,  # Match user's energy
+        sweet_zone=(0.35, 0.65), # Comfortable engagement range
+    ),
+)
 
-# Call every 30 minutes
-result = engine.tick()
+result = love.tick()
 if result.should_send:
-    print(f"Longing at {result.probability:.0%} — time to reach out!")
-```
+    send_message(result.prompt)
+    love.record_send()
 
-### Simulation
-
-```bash
-git clone https://github.com/pearthink123/poisson-love
-cd poisson-love
-pip install -e .
-python examples/quickstart.py
+# After user responds
+love.record_engagement(0.7)  # Reply speed/quality score
+love.record_reply()
 ```
 
 ---
 
-## Connect to Any AI
+## User Preferences
+
+Choose how the AI should behave:
+
+```python
+pref = UserPreference(
+    style=Style.RESPECTFUL,     # proactive / respectful / balanced
+    on_engaged=Response.MORE,   # User wants to chat → send more
+    on_disengaged=Response.LESS, # User is busy → back off
+    sweet_zone=(0.35, 0.65),    # Comfortable range (don't adjust inside)
+    max_daily=8,                # Max messages per day
+    quiet_hours=("00:00", "08:00"), # No messages at night
+)
+```
+
+| Style | User is engaged | User is quiet |
+|-------|----------------|---------------|
+| **Proactive** | Send more ❤️ | Send more ❤️‍🩹 |
+| **Respectful** | Send more ❤️ | Give space 🫧 |
+| **Balanced** | Stay put 😌 | Stay put 😌 |
+
+---
+
+## Use Any AI Backend
 
 ```python
 # OpenAI / GPT
@@ -85,7 +94,7 @@ adapter = AnthropicAdapter(config, api_key="sk-ant-...")
 
 # Ollama / local models
 from poisson_love.adapters import GenericAdapter
-adapter = GenericAdapter(config, api_url="http://localhost:11434/v1/chat/completions", model="llama3")
+adapter = GenericAdapter(config, api_url="http://localhost:11434/v1/chat/completions")
 
 # Run
 from poisson_love.runner import Runner
@@ -95,19 +104,44 @@ runner.run()
 
 ---
 
+## Architecture
+
+```
+poisson-love/
+├── love.py              # Unified API (start here)
+├── core/
+│   ├── engine.py        # Poisson dice + probability dynamics
+│   ├── config.py        # YAML config
+│   └── models.py        # Data structures
+├── control/
+│   ├── pid.py           # PID controller (adaptive frequency)
+│   ├── signal.py        # Pluggable signal framework
+│   └── preference.py    # User preference → PID parameters
+├── info_gain/
+│   ├── core.py          # Entropy × resolution potential
+│   └── sources.py       # Silence, novelty, conversation state
+├── optimal_stop/
+│   ├── core.py          # Threshold rule + secretary rule
+│   └── signals.py       # Activity, potential, urgency signals
+└── adapters/
+    ├── openai.py        # OpenAI / GPT
+    ├── anthropic.py     # Anthropic / Claude
+    └── generic.py       # Ollama, HTTP, shell command
+```
+
+---
+
 ## How It Works
 
 ### The Math
 
-Each tick, compute hit probability:
+Each tick, the engine computes hit probability:
 
 ```
 P(hit) = 1 - e^(-λt)
 ```
 
-Where λ = longing rate, t = time interval.
-
-Base: **~7.2%** per 30-minute check.
+Where λ = longing rate, t = time interval. Base: ~7.2% per 30-minute check.
 
 ### Probability Dynamics
 
@@ -137,7 +171,7 @@ engagement:
   min_interval_hours: 1.0        # Anti-spam cooldown
 
   adjudication:
-    quiet_hours:                 # Night — hit but never send
+    quiet_hours:
       start: "00:00"
       end: "08:00"
     normal_send_probability: 0.7
@@ -150,39 +184,20 @@ persona:
 
 ---
 
-## Architecture
+## Demos
 
+```bash
+git clone https://github.com/pearthink123/poisson-love
+cd poisson-love
+pip install -e .
+
+PYTHONPATH=src python examples/quickstart_unified.py    # 5-line quickstart
+PYTHONPATH=src python examples/pid_demo.py              # PID controller
+PYTHONPATH=src python examples/preference_demo.py       # 3 user styles
+PYTHONPATH=src python examples/info_gain_demo.py        # Information gain
+PYTHONPATH=src python examples/optimal_stop_demo.py     # Optimal stopping
+PYTHONPATH=src python examples/full_pipeline_demo.py    # All 4 stages
 ```
-poisson-love/
-├── core/
-│   ├── engine.py        # Pure math: Poisson dice, probability, adjudication
-│   ├── config.py        # YAML config parser
-│   └── models.py        # Data structures
-├── adapters/
-│   ├── openai.py        # OpenAI / GPT
-│   ├── anthropic.py     # Anthropic / Claude
-│   └── generic.py       # Ollama, HTTP, shell command
-├── runner.py            # Scheduler
-├── math/                # Future: more math models
-└── examples/
-    ├── pcpx.yaml        # Example config
-    └── quickstart.py    # 5-line demo
-```
-
-**Zero dependencies on any AI platform.** Engine = pure math. Adapters = optional plugins.
-
----
-
-## Roadmap
-
-| Module | Model | Application | Status |
-|--------|-------|-------------|--------|
-| `poisson.py` | Poisson process | Random engagement timing | ✅ Done |
-|| `control.py` | PID controller | Adaptive frequency (user feedback → adjust rate) | ✅ Done |
-|| `info_gain.py` | Information theory | "Is this interaction worth it?" decision | ✅ Done |
-|| `optimal_stop.py` | Optimal stopping | Best moment to intervene | ✅ Done |
-| `queueing.py` | Queueing theory | User's mental bandwidth management | 📋 Planned |
-| `sde.py` | Stochastic differential equations | User state trajectory prediction | 📋 Planned |
 
 ---
 
