@@ -5,14 +5,19 @@ This module is independent of the Poisson engine.
 Use it for any adaptive control scenario.
 
 Example:
-    from poisson_love.control import PIDController, Signal, CombinedSignal
+    from poisson_love.control import PIDController, Signal, CombinedSignal, UserPreference
 
+    # Option 1: Manual PID setup
     pid = PIDController(kp=0.1, ki=0.01, kd=0.05, setpoint=0.5)
-    adjustment = pid.update(current=0.3)
+
+    # Option 2: User preference → automatic PID setup
+    pref = UserPreference(style=Style.RESPECTFUL, on_engaged=Response.MORE)
+    pid = PIDController.from_preference(pref)
 """
 
 from .pid import PIDController
 from .signal import Signal, CombinedSignal, ConstantSignal, BufferedSignal
+from .preference import UserPreference, Style, Response
 
 __all__ = [
     "PIDController",
@@ -20,4 +25,7 @@ __all__ = [
     "CombinedSignal",
     "ConstantSignal",
     "BufferedSignal",
+    "UserPreference",
+    "Style",
+    "Response",
 ]

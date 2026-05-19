@@ -106,3 +106,18 @@ class PIDController:
         self.kp = kp
         self.ki = ki
         self.kd = kd
+
+    @classmethod
+    def from_preference(cls, pref) -> "PIDController":
+        """
+        Create PID controller from a UserPreference.
+
+        Args:
+            pref: UserPreference instance.
+
+        Returns:
+            PIDController configured according to user's style.
+        """
+        from .preference import UserPreference
+        params = pref.to_pid_params()
+        return cls(**params)
