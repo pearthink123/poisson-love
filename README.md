@@ -195,6 +195,28 @@ It's not random chaos. It's not rigid scheduling. It's **structured spontaneity*
 
 ---
 
+## Dashboard
+
+可视化 AI 互动决策过程：渴望曲线、状态分布、发送历史。
+
+```bash
+# Install dashboard dependencies
+pip install -e ".[dashboard]"
+
+# Run dashboard
+streamlit run dashboard.py
+```
+
+![Dashboard Preview](assets/dashboard.png)
+
+功能：
+- 🎲 **渴望曲线** — Poisson 概率随时间变化
+- 🧠 **状态分布** — Bayesian 推断的用户状态
+- ⏰ **按小时分布** — 什么时候容易发消息
+- 📋 **决策日志** — 每次决策的详细记录
+
+---
+
 ## Testing
 
 ```bash
