@@ -32,7 +32,7 @@ A probabilistic engine that decides **when** and **whether** to reach out:
 ## Quick Start
 
 ```bash
-pip install git+https://github.com/pearthink123/revive-my-lover.git
+pip install revive-my-lover
 ```
 
 ```python

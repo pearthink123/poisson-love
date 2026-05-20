@@ -34,7 +34,7 @@ AI 助手要么**太被动**（等你来找它），要么**太刷屏**（定时
 ## 快速开始
 
 ```bash
-pip install git+https://github.com/pearthink123/revive-my-lover.git
+pip install revive-my-lover
 ```
 
 ```python
