@@ -10,12 +10,12 @@ Applies a Poisson process to model "missing someone":
 """
 
 from __future__ import annotations
+
+import json
 import math
 import random
-import json
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 from .config import Config
 from .models import Action, LogEntry, TickResult
@@ -32,10 +32,10 @@ class PoissonEngine:
             send_message(result.prompt)
     """
 
-    def __init__(self, config: Config, seed: Optional[int] = None):
+    def __init__(self, config: Config, seed: int | None = None):
         self.config = config
         self.probability = self._base_probability()
-        self.last_send_time: Optional[datetime] = None
+        self.last_send_time: datetime | None = None
         self.miss_streak = 0
         self.log: list[LogEntry] = []
 
@@ -47,7 +47,7 @@ class PoissonEngine:
         t = self.config.engagement.check_interval_minutes / 60.0
         return 1 - math.exp(-lam * t)
 
-    def tick(self, now: Optional[datetime] = None) -> TickResult:
+    def tick(self, now: datetime | None = None) -> TickResult:
         """
         Run one tick. Call this every check_interval_minutes.
 
@@ -71,7 +71,7 @@ class PoissonEngine:
                     probability=self.probability,
                     roll=0.0,
                     hour_of_day=hour,
-                    reason=f"Too early (t={elapsed:.2f}h < {self.config.engagement.min_interval_hours}h)",
+                    reason=f"Too early (t={elapsed:.2f}h < {self.config.engagement.min_interval_hours}h)",  # noqa: E501,
                 )
                 self._log(now, result)
                 return result
@@ -120,7 +120,7 @@ class PoissonEngine:
         self._log(now, result)
         return result
 
-    def confirm_send(self, now: Optional[datetime] = None) -> None:
+    def confirm_send(self, now: datetime | None = None) -> None:
         """Call after all downstream gates approve a HIT_SEND candidate.
 
         Resets probability and records the send time.
@@ -187,7 +187,7 @@ class PoissonEngine:
 
     def _build_prompt(self, now: datetime, hit_probability: float) -> str:
         """Build the prompt/message to send."""
-        persona = self.config.persona
+        _persona = self.config.persona
         hour = now.hour
 
         # Context-aware prompt fragments
@@ -211,27 +211,28 @@ class PoissonEngine:
 
     def _log(self, now: datetime, result: TickResult):
         """Append to internal log."""
-        self.log.append(LogEntry(
-            timestamp=now,
-            action=result.action,
-            probability=result.probability,
-            roll=result.roll,
-            reason=result.reason,
-        ))
+        self.log.append(
+            LogEntry(
+                timestamp=now,
+                action=result.action,
+                probability=result.probability,
+                roll=result.roll,
+                reason=result.reason,
+            )
+        )
 
     def save_log(self, path: str | Path) -> None:
         """Save log to JSON file."""
         path = Path(path)
         with open(path, "w", encoding="utf-8") as f:
-            json.dump([entry.to_dict() for entry in self.log], f,
-                      ensure_ascii=False, indent=2)
+            json.dump([entry.to_dict() for entry in self.log], f, ensure_ascii=False, indent=2)
 
     def load_log(self, path: str | Path) -> None:
         """Load log from JSON file (for state recovery)."""
         path = Path(path)
         if not path.exists():
             return
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             data = json.load(f)
         self.log = [LogEntry.from_dict(d) for d in data]
         # Restore last state

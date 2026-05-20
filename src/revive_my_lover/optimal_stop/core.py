@@ -24,15 +24,15 @@ Usage:
 """
 
 from __future__ import annotations
-import math
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional, Callable
 
 
 class Decision(Enum):
     """Stop or continue?"""
+
     STOP = "stop"
     CONTINUE = "continue"
 
@@ -42,10 +42,10 @@ class StopResult:
     """Result of a stopping decision."""
 
     decision: Decision
-    signal: float           # Current signal value
-    threshold: float        # Current threshold
-    step: int               # Current step (0-indexed)
-    steps_remaining: int    # Steps left
+    signal: float  # Current signal value
+    threshold: float  # Current threshold
+    step: int  # Current step (0-indexed)
+    steps_remaining: int  # Steps left
     reason: str = ""
 
     @property
@@ -141,7 +141,7 @@ class SecretaryRule(StoppingRule):
         observe_until = max(1, int(horizon * 0.37))
 
         if step < observe_until:
-            if not hasattr(self, '_best_observed'):
+            if not hasattr(self, "_best_observed"):
                 self._best_observed = signal
             else:
                 self._best_observed = max(self._best_observed, signal)
@@ -161,7 +161,7 @@ class SecretaryRule(StoppingRule):
         """Human-readable reason for the decision."""
         observe_until = max(1, int(horizon * 0.37))
         if step < observe_until:
-            return f"观察阶段（{step+1}/{observe_until}），记录最佳={self._best_observed:.3f}"
+            return f"观察阶段（{step + 1}/{observe_until}），记录最佳={self._best_observed:.3f}"
         elif signal > self._best_observed:
             return f"信号 {signal:.3f} > 之前最佳 {self._best_observed:.3f}，行动！"
         else:
@@ -169,7 +169,7 @@ class SecretaryRule(StoppingRule):
 
     def reset(self):
         """Reset for a new run."""
-        self._best_observed = float('-inf')
+        self._best_observed = float("-inf")
 
 
 @dataclass
@@ -197,10 +197,10 @@ class OptimalStop:
     rule: StoppingRule = field(default_factory=lambda: ThresholdRule())
     history: list[float] = field(default_factory=list)
     stopped: bool = False
-    stopped_at: Optional[int] = None
-    stopped_signal: Optional[float] = None
+    stopped_at: int | None = None
+    stopped_signal: float | None = None
 
-    def decide(self, signal: float, step: int, horizon: Optional[int] = None) -> StopResult:
+    def decide(self, signal: float, step: int, horizon: int | None = None) -> StopResult:
         """
         Make a stopping decision.
 
@@ -222,14 +222,14 @@ class OptimalStop:
                 reason="Already stopped",
             )
 
-        h = horizon or getattr(self.rule, 'horizon', 10)
+        h = horizon or getattr(self.rule, "horizon", 10)
         self.history.append(signal)
 
         decision = self.rule.decide(signal, step, h)
         thresh = self.rule.threshold(step, h)
 
         # Use rule's custom reason if available
-        if hasattr(self.rule, 'reason'):
+        if hasattr(self.rule, "reason"):
             reason = self.rule.reason(signal, step, h)
         elif decision == Decision.STOP:
             self.stopped = True
@@ -255,10 +255,10 @@ class OptimalStop:
         self.stopped = False
         self.stopped_at = None
         self.stopped_signal = None
-        if hasattr(self.rule, 'reset'):
+        if hasattr(self.rule, "reset"):
             self.rule.reset()
 
     @property
-    def best_observed(self) -> Optional[float]:
+    def best_observed(self) -> float | None:
         """Best signal observed so far."""
         return max(self.history) if self.history else None

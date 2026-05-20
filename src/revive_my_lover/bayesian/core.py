@@ -27,60 +27,85 @@ Usage:
 """
 
 from __future__ import annotations
+
 import math
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional
 
 
 class State(Enum):
     """Hidden user states."""
-    CHATTING = "chatting"       # Active conversation
-    IDLE_ONLINE = "idle"        # Online but quiet
-    BUSY = "busy"               # Occupied
-    SLEEPING = "sleeping"       # Asleep
-    AWAY = "away"               # Not around
-    NEEDING = "needing"         # Might need a check-in
+
+    CHATTING = "chatting"  # Active conversation
+    IDLE_ONLINE = "idle"  # Online but quiet
+    BUSY = "busy"  # Occupied
+    SLEEPING = "sleeping"  # Asleep
+    AWAY = "away"  # Not around
+    NEEDING = "needing"  # Might need a check-in
 
 
 # State transition probabilities: P(next | current)
 # Row = current state, Col = next state
 TRANSITIONS = {
     State.CHATTING: {
-        State.CHATTING: 0.5, State.IDLE_ONLINE: 0.3,
-        State.BUSY: 0.1, State.SLEEPING: 0.0, State.AWAY: 0.05, State.NEEDING: 0.05,
+        State.CHATTING: 0.5,
+        State.IDLE_ONLINE: 0.3,
+        State.BUSY: 0.1,
+        State.SLEEPING: 0.0,
+        State.AWAY: 0.05,
+        State.NEEDING: 0.05,
     },
     State.IDLE_ONLINE: {
-        State.CHATTING: 0.15, State.IDLE_ONLINE: 0.4,
-        State.BUSY: 0.2, State.SLEEPING: 0.05, State.AWAY: 0.1, State.NEEDING: 0.1,
+        State.CHATTING: 0.15,
+        State.IDLE_ONLINE: 0.4,
+        State.BUSY: 0.2,
+        State.SLEEPING: 0.05,
+        State.AWAY: 0.1,
+        State.NEEDING: 0.1,
     },
     State.BUSY: {
-        State.CHATTING: 0.05, State.IDLE_ONLINE: 0.2,
-        State.BUSY: 0.5, State.SLEEPING: 0.1, State.AWAY: 0.1, State.NEEDING: 0.05,
+        State.CHATTING: 0.05,
+        State.IDLE_ONLINE: 0.2,
+        State.BUSY: 0.5,
+        State.SLEEPING: 0.1,
+        State.AWAY: 0.1,
+        State.NEEDING: 0.05,
     },
     State.SLEEPING: {
-        State.CHATTING: 0.02, State.IDLE_ONLINE: 0.1,
-        State.BUSY: 0.08, State.SLEEPING: 0.7, State.AWAY: 0.05, State.NEEDING: 0.05,
+        State.CHATTING: 0.02,
+        State.IDLE_ONLINE: 0.1,
+        State.BUSY: 0.08,
+        State.SLEEPING: 0.7,
+        State.AWAY: 0.05,
+        State.NEEDING: 0.05,
     },
     State.AWAY: {
-        State.CHATTING: 0.05, State.IDLE_ONLINE: 0.15,
-        State.BUSY: 0.15, State.SLEEPING: 0.15, State.AWAY: 0.4, State.NEEDING: 0.1,
+        State.CHATTING: 0.05,
+        State.IDLE_ONLINE: 0.15,
+        State.BUSY: 0.15,
+        State.SLEEPING: 0.15,
+        State.AWAY: 0.4,
+        State.NEEDING: 0.1,
     },
     State.NEEDING: {
-        State.CHATTING: 0.1, State.IDLE_ONLINE: 0.15,
-        State.BUSY: 0.1, State.SLEEPING: 0.05, State.AWAY: 0.1, State.NEEDING: 0.5,
+        State.CHATTING: 0.1,
+        State.IDLE_ONLINE: 0.15,
+        State.BUSY: 0.1,
+        State.SLEEPING: 0.05,
+        State.AWAY: 0.1,
+        State.NEEDING: 0.5,
     },
 }
 
 # P(action | state) — what should we do in each state?
 # Higher = more appropriate to send
 SEND_UTILITY = {
-    State.CHATTING:    0.2,  # Already chatting, don't interrupt
+    State.CHATTING: 0.2,  # Already chatting, don't interrupt
     State.IDLE_ONLINE: 0.7,  # Online but quiet, good time to reach out
-    State.BUSY:        0.1,  # Busy, don't bother
-    State.SLEEPING:    0.0,  # Sleeping, never send
-    State.AWAY:        0.3,  # Away, maybe send (might see later)
-    State.NEEDING:     0.9,  # Might need care, send!
+    State.BUSY: 0.1,  # Busy, don't bother
+    State.SLEEPING: 0.0,  # Sleeping, never send
+    State.AWAY: 0.3,  # Away, maybe send (might see later)
+    State.NEEDING: 0.9,  # Might need care, send!
 }
 
 
@@ -97,14 +122,16 @@ class StateEstimator:
         states: List of possible states.
     """
 
-    prior: dict[State, float] = field(default_factory=lambda: {
-        State.CHATTING: 0.1,
-        State.IDLE_ONLINE: 0.2,
-        State.BUSY: 0.3,
-        State.SLEEPING: 0.1,
-        State.AWAY: 0.2,
-        State.NEEDING: 0.1,
-    })
+    prior: dict[State, float] = field(
+        default_factory=lambda: {
+            State.CHATTING: 0.1,
+            State.IDLE_ONLINE: 0.2,
+            State.BUSY: 0.3,
+            State.SLEEPING: 0.1,
+            State.AWAY: 0.2,
+            State.NEEDING: 0.1,
+        }
+    )
 
     def __post_init__(self):
         # Normalize prior
@@ -112,7 +139,7 @@ class StateEstimator:
         if total > 0:
             self.prior = {k: v / total for k, v in self.prior.items()}
         self._belief = dict(self.prior)
-        
+
         # Learned parameters (initially None)
         self._learned_likelihoods = None
         self._learned_temporal = None
@@ -124,11 +151,11 @@ class StateEstimator:
 
     def update(
         self,
-        reply_speed: Optional[float] = None,
-        reply_length: Optional[float] = None,
-        hour: Optional[float] = None,
-        silence_hours: Optional[float] = None,
-        has_reaction: Optional[bool] = None,
+        reply_speed: float | None = None,
+        reply_length: float | None = None,
+        hour: float | None = None,
+        silence_hours: float | None = None,
+        has_reaction: bool | None = None,
     ) -> dict[State, float]:
         """
         Update beliefs with new observation.
@@ -186,10 +213,7 @@ class StateEstimator:
 
         E[utility] = Σ P(state) × utility(send | state)
         """
-        return sum(
-            self._belief[s] * SEND_UTILITY[s]
-            for s in State
-        )
+        return sum(self._belief[s] * SEND_UTILITY[s] for s in State)
 
     def should_send(self, threshold: float = 0.5) -> tuple[bool, str]:
         """
@@ -205,14 +229,14 @@ class StateEstimator:
         else:
             return False, f"Utility {utility:.2f} < {threshold} (likely: {best_state.value})"
 
-    def reset(self, prior: Optional[dict[State, float]] = None) -> None:
+    def reset(self, prior: dict[State, float] | None = None) -> None:
         """Reset to initial beliefs."""
         self._belief = dict(prior or self.prior)
 
     def update_params(self, params: dict) -> None:
         """
         Update estimator parameters from learned data.
-        
+
         Args:
             params: Dict from BayesianLearner.learn() containing:
                 - transitions: P(next_state | current_state)
@@ -225,12 +249,14 @@ class StateEstimator:
                 if from_state in params["transitions"]:
                     for to_state in State:
                         if to_state in params["transitions"][from_state]:
-                            TRANSITIONS[from_state][to_state] = params["transitions"][from_state][to_state]
-        
+                            TRANSITIONS[from_state][to_state] = params["transitions"][from_state][
+                                to_state
+                            ]
+
         if "likelihoods" in params:
             # Store learned likelihoods for use in update()
             self._learned_likelihoods = params["likelihoods"]
-        
+
         if "temporal" in params:
             # Store learned temporal patterns
             self._learned_temporal = params["temporal"]
@@ -250,21 +276,23 @@ class StateEstimator:
     def _likelihood_reply_speed(self, speed: float, state: State) -> float:
         """P(reply_speed | state)"""
         # Use learned parameters if available
-        if (hasattr(self, '_learned_likelihoods') and 
-            self._learned_likelihoods is not None and 
-            state in self._learned_likelihoods):
+        if (
+            hasattr(self, "_learned_likelihoods")
+            and self._learned_likelihoods is not None
+            and state in self._learned_likelihoods
+        ):
             if "reply_speed" in self._learned_likelihoods[state]:
                 mean, std = self._learned_likelihoods[state]["reply_speed"]
                 return _gaussian(speed, mean, std)
-        
+
         # Default profiles
         profiles = {
-            State.CHATTING:    (0.8, 0.15),  # (mean, std)
+            State.CHATTING: (0.8, 0.15),  # (mean, std)
             State.IDLE_ONLINE: (0.5, 0.2),
-            State.BUSY:        (0.2, 0.15),
-            State.SLEEPING:    (0.0, 0.05),
-            State.AWAY:        (0.1, 0.1),
-            State.NEEDING:     (0.3, 0.2),
+            State.BUSY: (0.2, 0.15),
+            State.SLEEPING: (0.0, 0.05),
+            State.AWAY: (0.1, 0.1),
+            State.NEEDING: (0.3, 0.2),
         }
         mean, std = profiles[state]
         return _gaussian(speed, mean, std)
@@ -272,21 +300,23 @@ class StateEstimator:
     def _likelihood_reply_length(self, length: float, state: State) -> float:
         """P(reply_length | state)"""
         # Use learned parameters if available
-        if (hasattr(self, '_learned_likelihoods') and 
-            self._learned_likelihoods is not None and 
-            state in self._learned_likelihoods):
+        if (
+            hasattr(self, "_learned_likelihoods")
+            and self._learned_likelihoods is not None
+            and state in self._learned_likelihoods
+        ):
             if "reply_length" in self._learned_likelihoods[state]:
                 mean, std = self._learned_likelihoods[state]["reply_length"]
                 return _gaussian(length, mean, std)
-        
+
         # Default profiles
         profiles = {
-            State.CHATTING:    (0.7, 0.15),
+            State.CHATTING: (0.7, 0.15),
             State.IDLE_ONLINE: (0.4, 0.2),
-            State.BUSY:        (0.15, 0.1),
-            State.SLEEPING:    (0.0, 0.05),
-            State.AWAY:        (0.1, 0.1),
-            State.NEEDING:     (0.3, 0.2),
+            State.BUSY: (0.15, 0.1),
+            State.SLEEPING: (0.0, 0.05),
+            State.AWAY: (0.1, 0.1),
+            State.NEEDING: (0.3, 0.2),
         }
         mean, std = profiles[state]
         return _gaussian(length, mean, std)
@@ -294,21 +324,23 @@ class StateEstimator:
     def _likelihood_hour(self, hour: float, state: State) -> float:
         """P(hour | state) — time of day makes some states more likely."""
         # Use learned temporal patterns if available
-        if (hasattr(self, '_learned_temporal') and 
-            self._learned_temporal is not None and 
-            state in self._learned_temporal):
+        if (
+            hasattr(self, "_learned_temporal")
+            and self._learned_temporal is not None
+            and state in self._learned_temporal
+        ):
             hour_int = int(hour) % 24
             if hour_int in self._learned_temporal[state]:
                 return self._learned_temporal[state][hour_int]
-        
+
         # Default profiles
         profiles = {
-            State.CHATTING:    [(9, 12), (17, 22)],  # Active hours
+            State.CHATTING: [(9, 12), (17, 22)],  # Active hours
             State.IDLE_ONLINE: [(8, 12), (14, 18), (19, 23)],
-            State.BUSY:        [(9, 12), (13, 17)],
-            State.SLEEPING:    [(0, 7), (23, 24)],
-            State.AWAY:        [(0, 24)],  # Any time
-            State.NEEDING:     [(10, 12), (15, 18), (20, 23)],
+            State.BUSY: [(9, 12), (13, 17)],
+            State.SLEEPING: [(0, 7), (23, 24)],
+            State.AWAY: [(0, 24)],  # Any time
+            State.NEEDING: [(10, 12), (15, 18), (20, 23)],
         }
         for start, end in profiles[state]:
             if start <= hour < end:
@@ -318,21 +350,23 @@ class StateEstimator:
     def _likelihood_silence(self, hours: float, state: State) -> float:
         """P(silence_hours | state)"""
         # Use learned parameters if available
-        if (hasattr(self, '_learned_likelihoods') and 
-            self._learned_likelihoods is not None and 
-            state in self._learned_likelihoods):
+        if (
+            hasattr(self, "_learned_likelihoods")
+            and self._learned_likelihoods is not None
+            and state in self._learned_likelihoods
+        ):
             if "silence_hours" in self._learned_likelihoods[state]:
                 mean, std = self._learned_likelihoods[state]["silence_hours"]
                 return _gaussian(hours, mean, std)
-        
+
         # Default profiles
         profiles = {
-            State.CHATTING:    (0.5, 1.0),   # (expected_hours, std)
+            State.CHATTING: (0.5, 1.0),  # (expected_hours, std)
             State.IDLE_ONLINE: (2.0, 2.0),
-            State.BUSY:        (4.0, 3.0),
-            State.SLEEPING:    (8.0, 3.0),
-            State.AWAY:        (12.0, 6.0),
-            State.NEEDING:     (24.0, 12.0),
+            State.BUSY: (4.0, 3.0),
+            State.SLEEPING: (8.0, 3.0),
+            State.AWAY: (12.0, 6.0),
+            State.NEEDING: (24.0, 12.0),
         }
         mean, std = profiles[state]
         return _gaussian(hours, mean, std)
@@ -340,12 +374,12 @@ class StateEstimator:
     def _likelihood_reaction(self, has_reaction: bool, state: State) -> float:
         """P(has_reaction | state)"""
         probs = {
-            State.CHATTING:    0.7,
+            State.CHATTING: 0.7,
             State.IDLE_ONLINE: 0.4,
-            State.BUSY:        0.1,
-            State.SLEEPING:    0.0,
-            State.AWAY:        0.05,
-            State.NEEDING:     0.2,
+            State.BUSY: 0.1,
+            State.SLEEPING: 0.0,
+            State.AWAY: 0.05,
+            State.NEEDING: 0.2,
         }
         p = probs[state]
         return p if has_reaction else (1 - p)

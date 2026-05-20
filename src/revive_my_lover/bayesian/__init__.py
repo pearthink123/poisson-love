@@ -24,11 +24,11 @@ Usage:
 
     est = StateEstimator()
     learner = BayesianLearner()
-    
+
     # Update with observations
     est.update(reply_speed=0.8, hour=14, silence=0.5)
     state, probs = est.most_likely()
-    
+
     # Learn from observations
     learner.record(state, reply_speed=0.8, hour=14)
     if learner.should_update():
@@ -36,7 +36,7 @@ Usage:
         est.update_params(new_params)
 """
 
-from .core import StateEstimator, State, SEND_UTILITY, TRANSITIONS
+from .core import SEND_UTILITY, TRANSITIONS, State, StateEstimator
 from .learner import BayesianLearner, ObservationRecord
 
 __all__ = [

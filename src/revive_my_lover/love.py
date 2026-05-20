@@ -17,34 +17,33 @@ Usage:
 """
 
 from __future__ import annotations
+
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Optional
 
-from .core.engine import PoissonEngine
+from .bayesian import StateEstimator
 from .core.config import Config
-from .core.models import Action, TickResult
-from .control import Signal, CombinedSignal
-from .info_gain import InformationGain, SilenceDuration, ConversationFlow, MessageNovelty
-from .bayesian import StateEstimator, State
+from .core.engine import PoissonEngine
+from .core.models import Action
+from .info_gain import ConversationFlow, InformationGain, MessageNovelty, SilenceDuration
 
 
 @dataclass
 class LoveResult:
     """Result of a PoissonLove tick."""
 
-    should_send: bool           # Final decision
-    stage: str                  # Which stage decided ("poisson", "infogain", "bayesian")
-    poisson_hit: bool           # Did Poisson dice hit?
-    infogain_passed: bool       # Did InfoGain approve?
-    user_state: str             # Inferred user state
-    state_confidence: float     # Confidence in state inference
-    send_utility: float         # Bayesian send utility (0-1)
-    lambda_rate: float          # Current lambda rate
-    probability: float          # Current Poisson probability
-    info_gain: float            # Information gain value
-    prompt: str                 # Message to send
-    reason: str                 # Human-readable explanation
+    should_send: bool  # Final decision
+    stage: str  # Which stage decided ("poisson", "infogain", "bayesian")
+    poisson_hit: bool  # Did Poisson dice hit?
+    infogain_passed: bool  # Did InfoGain approve?
+    user_state: str  # Inferred user state
+    state_confidence: float  # Confidence in state inference
+    send_utility: float  # Bayesian send utility (0-1)
+    lambda_rate: float  # Current lambda rate
+    probability: float  # Current Poisson probability
+    info_gain: float  # Information gain value
+    prompt: str  # Message to send
+    reason: str  # Human-readable explanation
     metadata: dict = field(default_factory=dict)
 
 
@@ -72,29 +71,31 @@ class PoissonLove:
 
     def __init__(
         self,
-        config: Optional[Config] = None,
+        config: Config | None = None,
         infogain_threshold: float = 0.20,
-        seed: Optional[int] = None,
+        seed: int | None = None,
     ):
         # Config
-        self.config = config or Config.from_dict({
-            "engagement": {
-                "lambda_rate": 0.15,
-                "check_interval_minutes": 30,
-                "growth_factor": 0.08,
-                "max_probability": 0.95,
-                "min_interval_hours": 1.0,
-                "adjudication": {
-                    "quiet_hours": {"start": "00:00", "end": "08:00"},
-                    "normal_send_probability": 0.7,
+        self.config = config or Config.from_dict(
+            {
+                "engagement": {
+                    "lambda_rate": 0.15,
+                    "check_interval_minutes": 30,
+                    "growth_factor": 0.08,
+                    "max_probability": 0.95,
+                    "min_interval_hours": 1.0,
+                    "adjudication": {
+                        "quiet_hours": {"start": "00:00", "end": "08:00"},
+                        "normal_send_probability": 0.7,
+                    },
                 },
-            },
-            "persona": {
-                "name": "Companion",
-                "tone": "warm-brief",
-                "context": "You are a caring companion.",
-            },
-        })
+                "persona": {
+                    "name": "Companion",
+                    "tone": "warm-brief",
+                    "context": "You are a caring companion.",
+                },
+            }
+        )
 
         # Modules
         self._engine = PoissonEngine(self.config, seed=seed)
@@ -103,13 +104,13 @@ class PoissonLove:
 
         # State
         self._base_lambda = self.config.engagement.lambda_rate
-        self._last_user_reply: Optional[datetime] = None
+        self._last_user_reply: datetime | None = None
         self._my_unanswered: int = 0
         self._recent_messages: list[str] = []
         self._last_reply_speed: float = 0.5
         self._last_reply_length: float = 0.5
 
-    def tick(self, now: Optional[datetime] = None) -> LoveResult:
+    def tick(self, now: datetime | None = None) -> LoveResult:
         """
         Run one tick of the full pipeline.
 
@@ -231,7 +232,7 @@ class PoissonLove:
         message: str = "",
         reply_speed: float = 0.5,
         reply_length: float = 0.5,
-        now: Optional[datetime] = None,
+        now: datetime | None = None,
     ) -> None:
         """
         Record that the user replied.
@@ -262,7 +263,7 @@ class PoissonLove:
         if message:
             self._recent_messages.append(message)
 
-    def record_send(self, message: str = "", now: Optional[datetime] = None) -> None:
+    def record_send(self, message: str = "", now: datetime | None = None) -> None:
         """Record that we sent a message."""
         self._my_unanswered += 1
         self._infogain.on_send()

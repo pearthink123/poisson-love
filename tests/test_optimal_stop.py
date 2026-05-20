@@ -3,7 +3,11 @@
 import pytest
 
 from revive_my_lover.optimal_stop.core import (
-    OptimalStop, ThresholdRule, SecretaryRule, Decision, StopResult
+    Decision,
+    OptimalStop,
+    SecretaryRule,
+    StopResult,
+    ThresholdRule,
 )
 
 
@@ -117,7 +121,7 @@ class TestSecretaryRule:
         secretary_rule.decide(0.9, 0, 10)
         assert secretary_rule._best_observed == 0.9
         secretary_rule.reset()
-        assert secretary_rule._best_observed == float('-inf')
+        assert secretary_rule._best_observed == float("-inf")
 
 
 class TestOptimalStop:
@@ -172,31 +176,19 @@ class TestStopResult:
     def test_should_stop_property(self):
         """should_stop reflects decision."""
         result = StopResult(
-            decision=Decision.STOP,
-            signal=0.5,
-            threshold=0.3,
-            step=5,
-            steps_remaining=4
+            decision=Decision.STOP, signal=0.5, threshold=0.3, step=5, steps_remaining=4
         )
         assert result.should_stop is True
 
         result2 = StopResult(
-            decision=Decision.CONTINUE,
-            signal=0.2,
-            threshold=0.3,
-            step=5,
-            steps_remaining=4
+            decision=Decision.CONTINUE, signal=0.2, threshold=0.3, step=5, steps_remaining=4
         )
         assert result2.should_stop is False
 
     def test_repr(self):
         """repr includes icon."""
         result = StopResult(
-            decision=Decision.STOP,
-            signal=0.5,
-            threshold=0.3,
-            step=5,
-            steps_remaining=4
+            decision=Decision.STOP, signal=0.5, threshold=0.3, step=5, steps_remaining=4
         )
         assert "STOP" in repr(result)
 

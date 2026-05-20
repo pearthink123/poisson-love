@@ -13,7 +13,7 @@ from pathlib import Path
 # Add src to path for local development
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from revive_my_lover import PoissonEngine, Config
+from revive_my_lover import Config, PoissonEngine
 from revive_my_lover.runner import Runner
 
 
@@ -46,14 +46,14 @@ def main():
         sends = [e for e in engine.log if e.action.value == "send"]
         holds = [e for e in engine.log if e.action.value == "hold"]
         misses = [e for e in engine.log if e.action.value == "miss"]
-        print(f"\n{'='*50}")
+        print(f"\n{'=' * 50}")
         print(f"Total checks: {len(engine.log)}")
         print(f"Sent: {len(sends)} | Held: {len(holds)} | Missed: {len(misses)}")
         print(f"Max longing: {max(e.probability for e in engine.log):.0%}")
 
         # Save log
         engine.save_log(Path(__file__).parent / "simulation_log.json")
-        print(f"\nLog saved to simulation_log.json")
+        print("\nLog saved to simulation_log.json")
 
         # Export curve data
         curve = engine.get_curve()

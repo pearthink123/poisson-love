@@ -10,17 +10,16 @@ Simulates a real chat scenario where:
 Run: PYTHONPATH=src python examples/pid_poisson_demo.py
 """
 
-import math
 import random
 from datetime import datetime, timedelta
 
-from revive_my_lover.core.engine import PoissonEngine
+from revive_my_lover.control import CombinedSignal, PIDController, Signal
 from revive_my_lover.core.config import Config
+from revive_my_lover.core.engine import PoissonEngine
 from revive_my_lover.core.models import Action
-from revive_my_lover.control import PIDController, Signal, CombinedSignal
-
 
 # ─── Simulated user behavior ───
+
 
 class SimUser:
     """Simulates a user with mood cycles and engagement patterns."""
@@ -80,12 +79,15 @@ class SimUser:
 
         return {
             "reply_speed": max(0.05, min(0.95, engagement + self._rng.uniform(-0.1, 0.1))),
-            "reply_quality": max(0.05, min(0.95, engagement * 0.9 + self._rng.uniform(-0.08, 0.08))),
+            "reply_quality": max(
+                0.05, min(0.95, engagement * 0.9 + self._rng.uniform(-0.08, 0.08))
+            ),
             "has_reaction": 1.0 if self._rng.random() < engagement * 0.8 else 0.0,
         }
 
 
 # ─── Signal implementations ───
+
 
 class LastReplySpeedSignal(Signal):
     """Returns reply speed from the last interaction."""
@@ -119,6 +121,7 @@ class LastReactionSignal(Signal):
 
 # ─── Main simulation ───
 
+
 def run_simulation(days: int = 3):
     print("=" * 70)
     print("PID × Poisson — Integrated Simulation")
@@ -126,24 +129,26 @@ def run_simulation(days: int = 3):
     print()
 
     # Config: base poisson engine
-    config = Config.from_dict({
-        "engagement": {
-            "lambda_rate": 0.15,
-            "check_interval_minutes": 30,
-            "growth_factor": 0.08,
-            "max_probability": 0.95,
-            "min_interval_hours": 1.0,
-            "adjudication": {
-                "quiet_hours": {"start": "00:00", "end": "08:00"},
-                "normal_send_probability": 0.7,
+    config = Config.from_dict(
+        {
+            "engagement": {
+                "lambda_rate": 0.15,
+                "check_interval_minutes": 30,
+                "growth_factor": 0.08,
+                "max_probability": 0.95,
+                "min_interval_hours": 1.0,
+                "adjudication": {
+                    "quiet_hours": {"start": "00:00", "end": "08:00"},
+                    "normal_send_probability": 0.7,
+                },
             },
-        },
-        "persona": {
-            "name": "Companion",
-            "tone": "warm-brief",
-            "context": "You are a caring companion.",
-        },
-    })
+            "persona": {
+                "name": "Companion",
+                "tone": "warm-brief",
+                "context": "You are a caring companion.",
+            },
+        }
+    )
 
     engine = PoissonEngine(config, seed=42)
     user = SimUser(seed=123)
@@ -176,7 +181,9 @@ def run_simulation(days: int = 3):
     misses = []
     lambda_history = []
 
-    print(f"{'Day':<4} {'Time':<6} {'Action':<10} {'Prob':<6} {'Score':<6} {'PID Adj':<8} {'λ':<6} {'Reason'}")
+    print(
+        f"{'Day':<4} {'Time':<6} {'Action':<10} {'Prob':<6} {'Score':<6} {'PID Adj':<8} {'λ':<6} {'Reason'}"
+    )
     print("-" * 70)
 
     for i in range(total_ticks):
@@ -205,12 +212,16 @@ def run_simulation(days: int = 3):
 
             # Print interesting events
             if i % 8 == 0 or abs(adj) > 0.02:  # Print every 4 hours or big changes
-                print(f"{now.day:<4} {now.strftime('%H:%M'):<6} {'✅ SEND':<10} {result.probability:<6.0%} {score:<6.2f} {adj:<+8.3f} {base_lambda:<6.3f} {result.reason or ''}")
+                print(
+                    f"{now.day:<4} {now.strftime('%H:%M'):<6} {'✅ SEND':<10} {result.probability:<6.0%} {score:<6.2f} {adj:<+8.3f} {base_lambda:<6.3f} {result.reason or ''}"
+                )
 
         elif result.action == Action.HIT_HOLD:
             holds.append(now)
             if i % 16 == 0:
-                print(f"{now.day:<4} {now.strftime('%H:%M'):<6} {'⏸️  HOLD':<10} {result.probability:<6.0%} {'':6} {'':8} {'':6} {result.reason or ''}")
+                print(
+                    f"{now.day:<4} {now.strftime('%H:%M'):<6} {'⏸️  HOLD':<10} {result.probability:<6.0%} {'':6} {'':8} {'':6} {result.reason or ''}"
+                )
 
         elif result.action == Action.MISS:
             misses.append(now)
@@ -230,7 +241,9 @@ def run_simulation(days: int = 3):
     if lambda_history:
         print(f"  Start: λ = {lambda_history[0][1]:.3f}")
         print(f"  End:   λ = {lambda_history[-1][1]:.3f}")
-        print(f"  Range: {min(l for _, l in lambda_history):.3f} — {max(l for _, l in lambda_history):.3f}")
+        print(
+            f"  Range: {min(l for _, l in lambda_history):.3f} — {max(l for _, l in lambda_history):.3f}"
+        )
     print()
     print("What happened:")
     print("  - User engagement fluctuated (mood cycles)")

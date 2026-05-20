@@ -11,9 +11,9 @@ Key insight: High entropy + low resolution = don't send (know little, message wo
 """
 
 from __future__ import annotations
+
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from typing import Optional
+from datetime import datetime
 
 from .core import InfoSource
 
@@ -27,8 +27,8 @@ class SilenceDuration(InfoSource):
     Long silence: High entropy (don't know state), high resolution (message will reveal)
     """
 
-    last_reply_time: Optional[datetime] = None
-    now: Optional[datetime] = None
+    last_reply_time: datetime | None = None
+    now: datetime | None = None
 
     def _hours(self) -> float:
         if self.last_reply_time is None:
@@ -74,8 +74,7 @@ class MessageNovelty(InfoSource):
             return 0.8  # First message, high novelty
 
         is_repeat = any(
-            self._similarity(self.current_message, msg) > 0.6
-            for msg in self.recent_messages[-5:]
+            self._similarity(self.current_message, msg) > 0.6 for msg in self.recent_messages[-5:]
         )
         return 0.1 if is_repeat else 0.7
 
@@ -92,7 +91,7 @@ class ConversationFlow(InfoSource):
     """
     Is the conversation active or dormant?
 
-    Active (user just replied): Low entropy (know they're engaged), low resolution (already chatting)
+    Active (user just replied): Low entropy (know they're engaged), low resolution (already chatting)  # noqa: E501
     Dormant (no replies): High entropy (don't know if they'll respond), moderate resolution
     Sending without reply: Low resolution (they're not responding, more messages won't help)
     """
@@ -130,7 +129,7 @@ class TimeOfDaySource(InfoSource):
     Work hours: Moderate
     """
 
-    hour: Optional[float] = None
+    hour: float | None = None
 
     def _get_hour(self) -> float:
         return self.hour or datetime.now().hour + datetime.now().minute / 60

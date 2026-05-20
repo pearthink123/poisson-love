@@ -5,10 +5,10 @@ Shows how to use PIDController with custom signals
 in different scenarios. Run: python examples/pid_demo.py
 """
 
-from revive_my_lover.control import PIDController, Signal, CombinedSignal, ConstantSignal
-
+from revive_my_lover.control import CombinedSignal, PIDController, Signal
 
 # ─── Scenario 1: Chat engagement frequency ───
+
 
 class ReplySpeedSignal(Signal):
     """Simulate reply speed: 0 (slow) to 1 (instant)."""
@@ -56,11 +56,12 @@ def demo_chat():
         score = signals.measure()
         adj = pid.update(score)
         new_lambda = max(0.05, min(0.4, base_lambda + adj))
-        print(f"{i+1:<5} {score:<8.3f} {pid.error:<8.3f} {adj:<+8.3f} {new_lambda:<8.3f}")
+        print(f"{i + 1:<5} {score:<8.3f} {pid.error:<8.3f} {adj:<+8.3f} {new_lambda:<8.3f}")
         base_lambda = new_lambda
 
 
 # ─── Scenario 2: Thermostat (classic PID) ───
+
 
 def demo_thermostat():
     print("\n=== Scenario 2: Thermostat ===")
@@ -75,10 +76,11 @@ def demo_thermostat():
     for i in range(8):
         heat = pid.update(temp)
         temp += heat * 0.3  # simplified physics
-        print(f"{i+1:<5} {temp:<8.1f} {heat:<+8.2f}")
+        print(f"{i + 1:<5} {temp:<8.1f} {heat:<+8.2f}")
 
 
 # ─── Scenario 3: Game difficulty ───
+
 
 def demo_game():
     print("\n=== Scenario 3: Game Difficulty ===")
@@ -94,7 +96,7 @@ def demo_game():
     for i, wr in enumerate(win_rates):
         adj = pid.update(wr)
         difficulty = max(1, min(10, difficulty - adj))
-        print(f"{i+1:<5} {wr:<8.1%} {adj:<+8.2f} {difficulty:<8.1f}")
+        print(f"{i + 1:<5} {wr:<8.1%} {adj:<+8.2f} {difficulty:<8.1f}")
 
 
 if __name__ == "__main__":

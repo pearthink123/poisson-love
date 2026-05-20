@@ -20,27 +20,37 @@ Quick start:
         send_message(result.prompt)
 """
 
-from .love import PoissonLove, LoveResult
-from .core.engine import PoissonEngine
+from .bayesian import State, StateEstimator
+from .control import CombinedSignal, Signal
 from .core.config import Config
-from .core.models import TickResult, Action, LogEntry
-from .control import Signal, CombinedSignal
-from .info_gain import InformationGain, SilenceDuration, ConversationFlow
+from .core.engine import PoissonEngine
+from .core.models import Action, LogEntry, TickResult
+from .info_gain import ConversationFlow, InformationGain, SilenceDuration
+from .love import LoveResult, PoissonLove
 from .optimal_stop import OptimalStop, ThresholdRule
-from .bayesian import StateEstimator, State
 
 __version__ = "0.9.0"
 __all__ = [
     # Unified API
-    "PoissonLove", "LoveResult",
+    "PoissonLove",
+    "LoveResult",
     # Core
-    "PoissonEngine", "Config", "TickResult", "Action", "LogEntry",
+    "PoissonEngine",
+    "Config",
+    "TickResult",
+    "Action",
+    "LogEntry",
     # Info Gain
-    "InformationGain", "SilenceDuration", "ConversationFlow",
+    "InformationGain",
+    "SilenceDuration",
+    "ConversationFlow",
     # Optimal Stop (optional)
-    "OptimalStop", "ThresholdRule",
+    "OptimalStop",
+    "ThresholdRule",
     # Bayesian
-    "StateEstimator", "State",
+    "StateEstimator",
+    "State",
     # Control (optional)
-    "Signal", "CombinedSignal",
+    "Signal",
+    "CombinedSignal",
 ]

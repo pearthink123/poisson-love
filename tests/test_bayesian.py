@@ -1,9 +1,8 @@
 """Tests for Bayesian state estimation."""
 
 import pytest
-import math
 
-from revive_my_lover.bayesian.core import StateEstimator, State, SEND_UTILITY, TRANSITIONS
+from revive_my_lover.bayesian.core import TRANSITIONS, State, StateEstimator
 
 
 @pytest.fixture
@@ -183,7 +182,7 @@ class TestLikelihoodFunctions:
         """Silence near expected hours gives higher likelihood."""
         # For NEEDING: expected 24h, std 12h
         p_near = estimator._likelihood_silence(24.0, State.NEEDING)  # At mean
-        p_far = estimator._likelihood_silence(48.0, State.NEEDING)   # 2 std away
+        p_far = estimator._likelihood_silence(48.0, State.NEEDING)  # 2 std away
         assert p_near > p_far
 
 
@@ -199,7 +198,7 @@ class TestReset:
 
     def test_reset_custom_prior(self, estimator):
         """Reset with custom prior."""
-        custom = {s: 1/6 for s in State}
+        custom = {s: 1 / 6 for s in State}
         estimator.reset(prior=custom)
         for state in State:
-            assert abs(estimator.belief[state] - 1/6) < 1e-6
+            assert abs(estimator.belief[state] - 1 / 6) < 1e-6

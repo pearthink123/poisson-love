@@ -7,9 +7,12 @@ Run: PYTHONPATH=src python examples/optimal_stop_demo.py
 """
 
 import random
+
 from revive_my_lover.optimal_stop import (
-    OptimalStop, ThresholdRule, SecretaryRule,
-    UserActivitySignal, ConversationPotential,
+    OptimalStop,
+    SecretaryRule,
+    ThresholdRule,
+    UserActivitySignal,
 )
 
 
@@ -21,21 +24,25 @@ def scenario_1():
     # Simulated user activity over 8 observations (8am to 10pm)
     activities = [0.2, 0.3, 0.5, 0.4, 0.7, 0.6, 0.85, 0.5]
 
-    stop = OptimalStop(rule=ThresholdRule(
-        horizon=8,
-        value_range=(0, 1),
-        urgency=0.5,
-        observe_steps=2,  # First 2 just observe
-    ))
+    stop = OptimalStop(
+        rule=ThresholdRule(
+            horizon=8,
+            value_range=(0, 1),
+            urgency=0.5,
+            observe_steps=2,  # First 2 just observe
+        )
+    )
 
     for t, act in enumerate(activities):
         result = stop.decide(act, step=t)
-        print(f"  步骤{t+1} | 活跃度={act:.2f} | 阈值={result.threshold:.2f} | {result.reason}")
+        print(f"  步骤{t + 1} | 活跃度={act:.2f} | 阈值={result.threshold:.2f} | {result.reason}")
         if result.should_stop:
-            print(f"  → 🛑 在步骤{t+1} 行动！（活跃度 {act:.2f} 超过阈值 {result.threshold:.2f}）")
+            print(
+                f"  → 🛑 在步骤{t + 1} 行动！（活跃度 {act:.2f} 超过阈值 {result.threshold:.2f}）"
+            )
             break
     else:
-        print(f"  → ⏳ 全部观察完，没有找到理想时机")
+        print("  → ⏳ 全部观察完，没有找到理想时机")
 
 
 def scenario_2():
@@ -53,11 +60,11 @@ def scenario_2():
     for t, sig in enumerate(signals):
         result = stop.decide(sig, step=t)
         phase = "👁️观察" if t < 3 else "🎯决策"
-        print(f"  步骤{t+1} ({phase}) | 信号={sig:.3f} | {result.reason}")
+        print(f"  步骤{t + 1} ({phase}) | 信号={sig:.3f} | {result.reason}")
 
         if result.should_stop:
             prev_best = max(stop.history[:-1]) if len(stop.history) > 1 else 0
-            print(f"  → 🛑 在步骤{t+1} 停止！（信号 {sig:.3f} 超过之前最佳 {prev_best:.3f}）")
+            print(f"  → 🛑 在步骤{t + 1} 停止！（信号 {sig:.3f} 超过之前最佳 {prev_best:.3f}）")
             break
     else:
         print(f"  → 没有找到更好的，最后选了步骤{len(signals)}")
@@ -70,11 +77,13 @@ def scenario_3():
     signals = [0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
 
     for urgency in [0.1, 0.5, 0.9]:
-        stop = OptimalStop(rule=ThresholdRule(
-            horizon=6,
-            value_range=(0, 1),
-            urgency=urgency,
-        ))
+        stop = OptimalStop(
+            rule=ThresholdRule(
+                horizon=6,
+                value_range=(0, 1),
+                urgency=urgency,
+            )
+        )
         result = None
         for t, sig in enumerate(signals):
             result = stop.decide(sig, step=t)
@@ -82,7 +91,9 @@ def scenario_3():
                 break
 
         if result and result.should_stop:
-            print(f"  紧迫度={urgency:.1f} → 在步骤{result.step+1}停止（信号={result.signal:.1f}，阈值={result.threshold:.2f}）")
+            print(
+                f"  紧迫度={urgency:.1f} → 在步骤{result.step + 1}停止（信号={result.signal:.1f}，阈值={result.threshold:.2f}）"
+            )
         else:
             print(f"  紧迫度={urgency:.1f} → 全部观察完未停止")
 
@@ -103,17 +114,21 @@ def scenario_4():
         ("20:00", UserActivitySignal(hour=20, last_seen_minutes_ago=2, messages_today=8)),
     ]
 
-    stop = OptimalStop(rule=ThresholdRule(
-        horizon=len(observations),
-        value_range=(0, 1),
-        urgency=0.3,
-        observe_steps=2,
-    ))
+    stop = OptimalStop(
+        rule=ThresholdRule(
+            horizon=len(observations),
+            value_range=(0, 1),
+            urgency=0.3,
+            observe_steps=2,
+        )
+    )
 
     for t, (time_str, sig) in enumerate(observations):
         val = sig.value()
         result = stop.decide(val, step=t)
-        print(f"  {time_str} | 活跃信号={val:.2f} | 阈值={result.threshold:.2f} | {'🛑行动' if result.should_stop else '⏳等待'}")
+        print(
+            f"  {time_str} | 活跃信号={val:.2f} | 阈值={result.threshold:.2f} | {'🛑行动' if result.should_stop else '⏳等待'}"
+        )
 
         if result.should_stop:
             print(f"  → 最佳介入时机：{time_str}！")

@@ -10,8 +10,8 @@ from revive_my_lover import PoissonLove
 love = PoissonLove()
 
 # Simulate a day
-from datetime import datetime, timedelta
 import random
+from datetime import datetime, timedelta
 
 rng = random.Random(42)
 now = datetime(2026, 5, 19, 8, 0)
@@ -32,10 +32,12 @@ for i in range(48):  # 24 hours, 30-min ticks
         if rng.random() < 0.6:  # 60% chance user replies
             love.record_reply(reply_speed=reply_speed, reply_length=reply_length)
 
-        print(f"  {now.strftime('%m/%d %H:%M')} → SEND "
-              f"state={result.user_state} utility={result.send_utility:.2f} "
-              f"confidence={result.state_confidence:.0%}")
+        print(
+            f"  {now.strftime('%m/%d %H:%M')} → SEND "
+            f"state={result.user_state} utility={result.send_utility:.2f} "
+            f"confidence={result.state_confidence:.0%}"
+        )
 
     now += timedelta(minutes=30)
 
-print(f"\nTotal sends: done.")
+print("\nTotal sends: done.")

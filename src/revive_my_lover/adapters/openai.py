@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Optional
 
 from ..core.config import Config
 from ..core.models import TickResult
@@ -15,8 +14,13 @@ logger = logging.getLogger(__name__)
 class OpenAIAdapter(Adapter):
     """Connect revive-my-lover to OpenAI's API."""
 
-    def __init__(self, config: Config, api_key: str = None, model: str = "gpt-4o",
-                 base_url: str = None):
+    def __init__(
+        self,
+        config: Config,
+        api_key: str | None = None,
+        model: str = "gpt-4o",
+        base_url: str | None = None,
+    ):
         super().__init__(config)
         self.model = model
         self.api_key = api_key
@@ -26,6 +30,7 @@ class OpenAIAdapter(Adapter):
     def _get_client(self):
         if self._client is None:
             from openai import OpenAI
+
             kwargs = {}
             if self.api_key:
                 kwargs["api_key"] = self.api_key
@@ -60,7 +65,7 @@ class OpenAIAdapter(Adapter):
             f"Reach out naturally. Keep it short."
         )
 
-    def send(self, system_prompt: str, user_prompt: str) -> Optional[str]:
+    def send(self, system_prompt: str, user_prompt: str) -> str | None:
         client = self._get_client()
         try:
             response = client.chat.completions.create(

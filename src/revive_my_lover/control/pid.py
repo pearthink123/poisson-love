@@ -10,8 +10,8 @@ Usage:
 """
 
 from __future__ import annotations
+
 from dataclasses import dataclass, field
-from typing import Optional
 
 
 @dataclass
@@ -38,14 +38,14 @@ class PIDController:
     ki: float = 0.0
     kd: float = 0.0
     setpoint: float = 0.0
-    output_min: Optional[float] = None
-    output_max: Optional[float] = None
-    integral_limit: Optional[float] = None
-    dead_band: Optional[float] = None  # If set, |error| < dead_band → no adjustment
+    output_min: float | None = None
+    output_max: float | None = None
+    integral_limit: float | None = None
+    dead_band: float | None = None  # If set, |error| < dead_band → no adjustment
 
     # Internal state (auto-managed)
     _integral: float = field(default=0.0, repr=False)
-    _prev_error: Optional[float] = field(default=None, repr=False)
+    _prev_error: float | None = field(default=None, repr=False)
 
     def update(self, current: float, dt: float = 1.0) -> float:
         """
@@ -97,7 +97,7 @@ class PIDController:
         self._prev_error = None
 
     @property
-    def error(self) -> Optional[float]:
+    def error(self) -> float | None:
         """Last computed error, or None if update() hasn't been called."""
         return self._prev_error
 
@@ -108,7 +108,7 @@ class PIDController:
         self.kd = kd
 
     @classmethod
-    def from_preference(cls, pref) -> "PIDController":
+    def from_preference(cls, pref) -> PIDController:
         """
         Create PID controller from a UserPreference.
 
@@ -118,6 +118,5 @@ class PIDController:
         Returns:
             PIDController configured according to user's style.
         """
-        from .preference import UserPreference
         params = pref.to_pid_params()
         return cls(**params)

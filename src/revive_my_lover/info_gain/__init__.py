@@ -15,11 +15,11 @@ Example:
         send_message()
 """
 
-from .core import InfoSource, InformationGain, GainResult
+from .core import GainResult, InformationGain, InfoSource
 from .sources import (
-    SilenceDuration,
-    MessageNovelty,
     ConversationFlow,
+    MessageNovelty,
+    SilenceDuration,
     TimeOfDaySource,
 )
 

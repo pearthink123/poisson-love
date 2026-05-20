@@ -1,29 +1,31 @@
 """Core data structures for revive-my-lover."""
 
 from __future__ import annotations
+
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Optional
 
 
 class Action(Enum):
     """What the engine decided to do."""
-    SKIP = "skip"        # Too early, t < min_interval
-    HIT_SEND = "send"    # Hit + adjudication says send
-    HIT_HOLD = "hold"    # Hit + adjudication says hold back
-    MISS = "miss"        # Dice didn't hit
+
+    SKIP = "skip"  # Too early, t < min_interval
+    HIT_SEND = "send"  # Hit + adjudication says send
+    HIT_HOLD = "hold"  # Hit + adjudication says hold back
+    MISS = "miss"  # Dice didn't hit
 
 
 @dataclass
 class TickResult:
     """Result of one engine tick."""
+
     action: Action
-    probability: float          # Current hit probability
-    roll: float                 # Random roll value
-    hour_of_day: float          # Current hour (0-24)
-    reason: Optional[str] = None  # Adjudication reason
-    prompt: Optional[str] = None  # Prompt to send (if HIT_SEND)
+    probability: float  # Current hit probability
+    roll: float  # Random roll value
+    hour_of_day: float  # Current hour (0-24)
+    reason: str | None = None  # Adjudication reason
+    prompt: str | None = None  # Prompt to send (if HIT_SEND)
     metadata: dict = field(default_factory=dict)
 
     @property
@@ -34,11 +36,12 @@ class TickResult:
 @dataclass
 class LogEntry:
     """A single log entry for persistence."""
+
     timestamp: datetime
     action: Action
     probability: float
     roll: float
-    reason: Optional[str] = None
+    reason: str | None = None
 
     def to_dict(self) -> dict:
         return {

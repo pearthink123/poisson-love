@@ -1,31 +1,34 @@
 """Tests for PoissonEngine — the core math engine."""
 
-import pytest
 import math
 from datetime import datetime, timedelta
 
-from revive_my_lover.core.engine import PoissonEngine
+import pytest
+
 from revive_my_lover.core.config import Config
+from revive_my_lover.core.engine import PoissonEngine
 from revive_my_lover.core.models import Action
 
 
 @pytest.fixture
 def default_config():
     """Default config for testing."""
-    return Config.from_dict({
-        "engagement": {
-            "lambda_rate": 0.15,
-            "check_interval_minutes": 30,
-            "growth_factor": 0.08,
-            "max_probability": 0.95,
-            "min_interval_hours": 1.0,
-            "adjudication": {
-                "quiet_hours": {"start": "00:00", "end": "08:00"},
-                "normal_send_probability": 0.7,
+    return Config.from_dict(
+        {
+            "engagement": {
+                "lambda_rate": 0.15,
+                "check_interval_minutes": 30,
+                "growth_factor": 0.08,
+                "max_probability": 0.95,
+                "min_interval_hours": 1.0,
+                "adjudication": {
+                    "quiet_hours": {"start": "00:00", "end": "08:00"},
+                    "normal_send_probability": 0.7,
+                },
             },
-        },
-        "persona": {"name": "Test", "tone": "test", "context": "Test"},
-    })
+            "persona": {"name": "Test", "tone": "test", "context": "Test"},
+        }
+    )
 
 
 @pytest.fixture
@@ -54,7 +57,6 @@ class TestPoissonEngineBasics:
 
     def test_probability_increases_on_miss(self, seeded_engine):
         """Probability grows after a miss."""
-        initial_prob = seeded_engine.probability
         # Force a miss by setting very low probability
         seeded_engine.probability = 0.001
         now = datetime(2026, 5, 20, 10, 0)  # Normal hours
@@ -122,11 +124,12 @@ class TestPoissonEngineGrowth:
 
     def test_growth_factor_applied(self, seeded_engine):
         """Growth factor is added to probability on miss."""
-        initial = seeded_engine.probability
         seeded_engine.probability = 0.1
         seeded_engine._grow()
-        expected = min(0.1 + seeded_engine.config.engagement.growth_factor,
-                      seeded_engine.config.engagement.max_probability)
+        expected = min(
+            0.1 + seeded_engine.config.engagement.growth_factor,
+            seeded_engine.config.engagement.max_probability,
+        )
         assert abs(seeded_engine.probability - expected) < 1e-6
 
     def test_max_probability_capped(self, seeded_engine):

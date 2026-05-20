@@ -6,22 +6,24 @@ and the system adapts accordingly.
 """
 
 from __future__ import annotations
-from dataclasses import dataclass, field
+
+from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
 
 
 class Style(Enum):
     """Interaction style."""
-    PROACTIVE = "proactive"    # Always reaching out, warm and persistent
+
+    PROACTIVE = "proactive"  # Always reaching out, warm and persistent
     RESPECTFUL = "respectful"  # Match user's energy, give space when needed
-    BALANCED = "balanced"      # Sweet zone based, only adjust when out of range
+    BALANCED = "balanced"  # Sweet zone based, only adjust when out of range
 
 
 class Response(Enum):
     """What to do when engagement is high/low."""
-    MORE = "more"          # Increase contact
-    LESS = "less"          # Decrease contact
+
+    MORE = "more"  # Increase contact
+    LESS = "less"  # Decrease contact
     MAINTAIN = "maintain"  # Keep current rate
 
 
@@ -55,8 +57,8 @@ class UserPreference:
     on_engaged: Response = Response.MORE
     on_disengaged: Response = Response.LESS
     sweet_zone: tuple[float, float] = (0.35, 0.65)
-    max_daily: Optional[int] = None
-    quiet_hours: Optional[tuple[str, str]] = None
+    max_daily: int | None = None
+    quiet_hours: tuple[str, str] | None = None
     engagement_threshold_low: float = 0.35
     engagement_threshold_high: float = 0.65
 
@@ -116,20 +118,30 @@ class UserPreference:
 
         if engagement < low:
             # Disengaged
-            return "increase" if self.on_disengaged == Response.MORE else \
-                   "decrease" if self.on_disengaged == Response.LESS else "maintain"
+            return (
+                "increase"
+                if self.on_disengaged == Response.MORE
+                else "decrease"
+                if self.on_disengaged == Response.LESS
+                else "maintain"
+            )
 
         elif engagement > high:
             # Highly engaged
-            return "increase" if self.on_engaged == Response.MORE else \
-                   "decrease" if self.on_engaged == Response.LESS else "maintain"
+            return (
+                "increase"
+                if self.on_engaged == Response.MORE
+                else "decrease"
+                if self.on_engaged == Response.LESS
+                else "maintain"
+            )
 
         else:
             # Sweet zone
             return "maintain"
 
     @classmethod
-    def from_dict(cls, data: dict) -> "UserPreference":
+    def from_dict(cls, data: dict) -> UserPreference:
         """Create from dict (e.g., from YAML config)."""
         style = Style(data.get("style", "respectful"))
         on_engaged = Response(data.get("on_engaged", "more"))

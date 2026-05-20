@@ -18,10 +18,9 @@ Usage:
 """
 
 from __future__ import annotations
-import math
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Optional
 
 
 @dataclass
@@ -61,15 +60,15 @@ class InfoSource(ABC):
 class GainResult:
     """Result of an information gain evaluation."""
 
-    total_entropy: float           # Total uncertainty across all sources
-    total_resolution: float        # How much can be resolved
-    gain: float                    # Bits of information gained
-    gain_ratio: float              # gain / total_entropy (0-1)
-    worth_sending: bool            # True if gain > threshold
+    total_entropy: float  # Total uncertainty across all sources
+    total_resolution: float  # How much can be resolved
+    gain: float  # Bits of information gained
+    gain_ratio: float  # gain / total_entropy (0-1)
+    worth_sending: bool  # True if gain > threshold
     reason: str = ""
 
     def __repr__(self) -> str:
-        return f"GainResult(gain={self.gain:.3f}, ratio={self.gain_ratio:.1%}, send={self.worth_sending})"
+        return f"GainResult(gain={self.gain:.3f}, ratio={self.gain_ratio:.1%}, send={self.worth_sending})"  # noqa: E501
 
 
 @dataclass
@@ -97,9 +96,9 @@ class InformationGain:
     """
 
     sources: list[InfoSource] = field(default_factory=list)
-    threshold: float = 0.25       # Min gain ratio (25%)
-    min_gain: float = 0.1         # Min absolute gain
-    decay: float = 0.85           # Decay per consecutive message
+    threshold: float = 0.25  # Min gain ratio (25%)
+    min_gain: float = 0.1  # Min absolute gain
+    decay: float = 0.85  # Decay per consecutive message
 
     # Internal state
     _send_count: int = field(default=0, repr=False)
@@ -119,7 +118,7 @@ class InformationGain:
             total_resolution += e * r  # Weighted: entropy × how much can be resolved
 
         # Apply decay for consecutive messages
-        decay_factor = self.decay ** self._send_count
+        decay_factor = self.decay**self._send_count
         gain = total_resolution * decay_factor
 
         # Gain ratio
@@ -159,6 +158,6 @@ class InformationGain:
         """Reset state."""
         self._send_count = 0
 
-    def add_source(self, source: InfoSource) -> "InformationGain":
+    def add_source(self, source: InfoSource) -> InformationGain:
         self.sources.append(source)
         return self

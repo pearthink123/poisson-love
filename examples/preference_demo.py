@@ -7,20 +7,23 @@ depending on the chosen interaction style.
 Run: PYTHONPATH=src python examples/preference_demo.py
 """
 
-import math
 import random
 from datetime import datetime, timedelta
 
-from revive_my_lover.core.engine import PoissonEngine
-from revive_my_lover.core.config import Config
-from revive_my_lover.core.models import Action
 from revive_my_lover.control import (
-    PIDController, Signal, CombinedSignal,
-    UserPreference, Style, Response,
+    CombinedSignal,
+    PIDController,
+    Response,
+    Signal,
+    Style,
+    UserPreference,
 )
-
+from revive_my_lover.core.config import Config
+from revive_my_lover.core.engine import PoissonEngine
+from revive_my_lover.core.models import Action
 
 # ─── Simulated user (same behavior for all 3 styles) ───
+
 
 class SimUser:
     def __init__(self, seed=42):
@@ -31,22 +34,36 @@ class SimUser:
     def respond(self, hour, longing):
         delta = self._rng.uniform(0.08, 0.2)
         self._mood += self._mood_direction * delta
-        if self._mood > 0.95: self._mood_direction = -1; self._mood = 0.95
-        elif self._mood < 0.15: self._mood_direction = 1; self._mood = 0.15
+        if self._mood > 0.95:
+            self._mood_direction = -1
+            self._mood = 0.95
+        elif self._mood < 0.15:
+            self._mood_direction = 1
+            self._mood = 0.15
 
-        if 0 <= hour < 8: tf = 0.1
-        elif hour < 10: tf = 0.6
-        elif hour < 12: tf = 0.8
-        elif hour < 14: tf = 0.5
-        elif hour < 17: tf = 0.85
-        elif hour < 20: tf = 0.95
-        elif hour < 22: tf = 0.9
-        else: tf = 0.3
+        if 0 <= hour < 8:
+            tf = 0.1
+        elif hour < 10:
+            tf = 0.6
+        elif hour < 12:
+            tf = 0.8
+        elif hour < 14:
+            tf = 0.5
+        elif hour < 17:
+            tf = 0.85
+        elif hour < 20:
+            tf = 0.95
+        elif hour < 22:
+            tf = 0.9
+        else:
+            tf = 0.3
 
         base = self._mood * tf
         eng = base * self._rng.uniform(0.85, 1.15)
-        if 0.3 <= longing <= 0.6: eng *= 1.15
-        elif longing > 0.8: eng *= 0.7
+        if 0.3 <= longing <= 0.6:
+            eng *= 1.15
+        elif longing > 0.8:
+            eng *= 0.7
         eng = max(0.05, min(0.95, eng))
 
         return {
@@ -57,8 +74,11 @@ class SimUser:
 
 
 class ValSignal(Signal):
-    def __init__(self): self.value = 0.5
-    def measure(self): return self.value
+    def __init__(self):
+        self.value = 0.5
+
+    def measure(self):
+        return self.value
 
 
 def transform_score(score: float, pref: UserPreference) -> float:
@@ -91,24 +111,30 @@ def transform_score(score: float, pref: UserPreference) -> float:
 
 def run_style_test(style_name: str, pref: UserPreference, seed: int = 42):
     """Run simulation for one style."""
-    config = Config.from_dict({
-        "engagement": {
-            "lambda_rate": 0.15, "check_interval_minutes": 30,
-            "growth_factor": 0.08, "max_probability": 0.95,
-            "min_interval_hours": 1.0,
-            "adjudication": {
-                "quiet_hours": {"start": "00:00", "end": "08:00"},
-                "normal_send_probability": 0.7,
+    config = Config.from_dict(
+        {
+            "engagement": {
+                "lambda_rate": 0.15,
+                "check_interval_minutes": 30,
+                "growth_factor": 0.08,
+                "max_probability": 0.95,
+                "min_interval_hours": 1.0,
+                "adjudication": {
+                    "quiet_hours": {"start": "00:00", "end": "08:00"},
+                    "normal_send_probability": 0.7,
+                },
             },
-        },
-        "persona": {"name": "AI", "tone": "warm", "context": "Caring companion."},
-    })
+            "persona": {"name": "AI", "tone": "warm", "context": "Caring companion."},
+        }
+    )
 
     engine = PoissonEngine(config, seed=seed)
     user = SimUser(seed=seed)
     pid = PIDController.from_preference(pref)
 
-    spd = ValSignal(); qlt = ValSignal(); rct = ValSignal()
+    spd = ValSignal()
+    qlt = ValSignal()
+    rct = ValSignal()
     combined = CombinedSignal((spd, 0.4), (qlt, 0.4), (rct, 0.2))
 
     bl = 0.15
@@ -124,7 +150,9 @@ def run_style_test(style_name: str, pref: UserPreference, seed: int = 42):
 
         if r.action == Action.HIT_SEND:
             resp = user.respond(hour, r.probability)
-            spd.value = resp["speed"]; qlt.value = resp["quality"]; rct.value = resp["reaction"]
+            spd.value = resp["speed"]
+            qlt.value = resp["quality"]
+            rct.value = resp["reaction"]
             raw_score = combined.measure()
 
             # Transform score based on style preference
@@ -150,24 +178,33 @@ def run_style_test(style_name: str, pref: UserPreference, seed: int = 42):
 
 def main():
     styles = [
-        ("A: Proactive (主动型)", UserPreference(
-            style=Style.PROACTIVE,
-            on_engaged=Response.MORE,
-            on_disengaged=Response.MORE,
-            sweet_zone=(0.35, 0.65),
-        )),
-        ("B: Respectful (尊重型)", UserPreference(
-            style=Style.RESPECTFUL,
-            on_engaged=Response.MORE,
-            on_disengaged=Response.LESS,
-            sweet_zone=(0.35, 0.65),
-        )),
-        ("C: Balanced (平衡型)", UserPreference(
-            style=Style.BALANCED,
-            on_engaged=Response.MAINTAIN,
-            on_disengaged=Response.MAINTAIN,
-            sweet_zone=(0.35, 0.65),
-        )),
+        (
+            "A: Proactive (主动型)",
+            UserPreference(
+                style=Style.PROACTIVE,
+                on_engaged=Response.MORE,
+                on_disengaged=Response.MORE,
+                sweet_zone=(0.35, 0.65),
+            ),
+        ),
+        (
+            "B: Respectful (尊重型)",
+            UserPreference(
+                style=Style.RESPECTFUL,
+                on_engaged=Response.MORE,
+                on_disengaged=Response.LESS,
+                sweet_zone=(0.35, 0.65),
+            ),
+        ),
+        (
+            "C: Balanced (平衡型)",
+            UserPreference(
+                style=Style.BALANCED,
+                on_engaged=Response.MAINTAIN,
+                on_disengaged=Response.MAINTAIN,
+                sweet_zone=(0.35, 0.65),
+            ),
+        ),
     ]
 
     print("=" * 70)
@@ -182,10 +219,14 @@ def main():
 
         for dt, score, adj, lam, tag in events:
             if abs(adj) > 0.02 or adj == 0:
-                print(f"   {dt.strftime('%m/%d %H:%M')} score={score:.2f} {tag} adj={adj:+.3f} λ={lam:.3f}")
+                print(
+                    f"   {dt.strftime('%m/%d %H:%M')} score={score:.2f} {tag} adj={adj:+.3f} λ={lam:.3f}"
+                )
 
         if lambdas:
-            print(f"   λ: {lambdas[0]:.3f} → {lambdas[-1]:.3f} ({min(lambdas):.3f}~{max(lambdas):.3f})")
+            print(
+                f"   λ: {lambdas[0]:.3f} → {lambdas[-1]:.3f} ({min(lambdas):.3f}~{max(lambdas):.3f})"
+            )
         print()
 
     # Comparison table

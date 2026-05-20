@@ -1,7 +1,7 @@
 """Anthropic (Claude) adapter for revive-my-lover."""
 
 from __future__ import annotations
-from typing import Optional
+
 from ..core.config import Config
 from ..core.models import TickResult
 from .base import Adapter
@@ -10,7 +10,9 @@ from .base import Adapter
 class AnthropicAdapter(Adapter):
     """Connect revive-my-lover to Anthropic's Claude API."""
 
-    def __init__(self, config: Config, api_key: str = None, model: str = "claude-sonnet-4-20250514"):
+    def __init__(
+        self, config: Config, api_key: str | None = None, model: str = "claude-sonnet-4-20250514"
+    ):
         super().__init__(config)
         self.model = model
         self.api_key = api_key
@@ -19,6 +21,7 @@ class AnthropicAdapter(Adapter):
     def _get_client(self):
         if self._client is None:
             from anthropic import Anthropic
+
             kwargs = {}
             if self.api_key:
                 kwargs["api_key"] = self.api_key
@@ -51,7 +54,7 @@ class AnthropicAdapter(Adapter):
             f"Reach out naturally. Keep it short."
         )
 
-    def send(self, system_prompt: str, user_prompt: str) -> Optional[str]:
+    def send(self, system_prompt: str, user_prompt: str) -> str | None:
         client = self._get_client()
         try:
             response = client.messages.create(
@@ -63,5 +66,5 @@ class AnthropicAdapter(Adapter):
                 ],
             )
             return response.content[0].text
-        except Exception as e:
+        except Exception:
             return None

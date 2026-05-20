@@ -9,9 +9,9 @@ Usage:
 """
 
 import os
-import sys
-import subprocess
 import shutil
+import subprocess
+import sys
 
 
 def run(cmd, check=True):
@@ -38,10 +38,10 @@ def build():
     """Build the package."""
     print("\n🔨 Building package...")
     run("python -m build")
-    
+
     # Check what was built
     dist_files = os.listdir("dist")
-    print(f"\n✅ Built files:")
+    print("\n✅ Built files:")
     for f in dist_files:
         size = os.path.getsize(os.path.join("dist", f))
         print(f"   {f} ({size / 1024:.1f} KB)")
@@ -68,34 +68,36 @@ def upload_prod():
 def main():
     """Main entry point."""
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
-    
+
     print("=" * 60)
     print("💘 revive-my-lover PyPI Build Script")
     print("=" * 60)
-    
+
     # Check if build tools are installed
     try:
         import build
-        import twine
+
     except ImportError:
         print("📦 Installing build tools...")
         run("pip install build twine -q")
-    
+
     # Clean
     clean()
-    
+
     # Build
     build()
-    
+
     # Check
     check()
-    
+
     # Upload based on argument
     if len(sys.argv) > 1:
         if sys.argv[1] == "--test":
             upload_test()
             print("\n✅ Uploaded to TestPyPI!")
-            print("   Test with: pip install --index-url https://test.pypi.org/simple/ revive-my-lover")
+            print(
+                "   Test with: pip install --index-url https://test.pypi.org/simple/ revive-my-lover"
+            )
         elif sys.argv[1] == "--prod":
             confirm = input("\n⚠️  Upload to PRODUCTION PyPI? (yes/no): ")
             if confirm.lower() == "yes":

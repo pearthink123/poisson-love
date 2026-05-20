@@ -7,9 +7,9 @@ The engine only computes math. Adapters handle:
 - Sending the message to the user
 """
 
-from .base import Adapter
-from .openai import OpenAIAdapter
 from .anthropic import AnthropicAdapter
+from .base import Adapter
 from .generic import GenericAdapter
+from .openai import OpenAIAdapter
 
 __all__ = ["Adapter", "OpenAIAdapter", "AnthropicAdapter", "GenericAdapter"]

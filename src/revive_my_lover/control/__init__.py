@@ -16,8 +16,8 @@ Example:
 """
 
 from .pid import PIDController
-from .signal import Signal, CombinedSignal, ConstantSignal, BufferedSignal
-from .preference import UserPreference, Style, Response
+from .preference import Response, Style, UserPreference
+from .signal import BufferedSignal, CombinedSignal, ConstantSignal, Signal
 
 __all__ = [
     "PIDController",

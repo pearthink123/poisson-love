@@ -8,13 +8,13 @@ Supports:
 """
 
 from __future__ import annotations
-import logging
+
 import json
+import logging
 import subprocess
-import shlex
-import urllib.request
 import urllib.error
-from typing import Optional, Union
+import urllib.request
+
 from ..core.config import Config
 from ..core.models import TickResult
 from .base import Adapter
@@ -36,12 +36,16 @@ class GenericAdapter(Adapter):
       - str: runs with shell=True (convenient but less safe)
     """
 
-    def __init__(self, config: Config, mode: str = "openai",
-                 api_url: str = "http://localhost:11434/v1/chat/completions",
-                 model: str = "llama3",
-                 command: Union[str, list[str]] = None,
-                 headers: dict = None,
-                 api_key: str = None):
+    def __init__(
+        self,
+        config: Config,
+        mode: str = "openai",
+        api_url: str = "http://localhost:11434/v1/chat/completions",
+        model: str = "llama3",
+        command: str | list[str] = None,
+        headers: dict = None,
+        api_key: str | None = None,
+    ):
         super().__init__(config)
         self.mode = mode
         self.api_url = api_url
@@ -77,7 +81,7 @@ class GenericAdapter(Adapter):
             f"Reach out naturally. Keep it short."
         )
 
-    def send(self, system_prompt: str, user_prompt: str) -> Optional[str]:
+    def send(self, system_prompt: str, user_prompt: str) -> str | None:
         if self.mode == "command":
             return self._send_command(system_prompt, user_prompt)
         elif self.mode == "http":
@@ -85,17 +89,19 @@ class GenericAdapter(Adapter):
         else:
             return self._send_openai_compat(system_prompt, user_prompt)
 
-    def _send_openai_compat(self, system_prompt: str, user_prompt: str) -> Optional[str]:
+    def _send_openai_compat(self, system_prompt: str, user_prompt: str) -> str | None:
         """Send via OpenAI-compatible API (Ollama, vLLM, etc)."""
-        payload = json.dumps({
-            "model": self.model,
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt},
-            ],
-            "max_tokens": 200,
-            "temperature": 0.8,
-        }).encode("utf-8")
+        payload = json.dumps(
+            {
+                "model": self.model,
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+                "max_tokens": 200,
+                "temperature": 0.8,
+            }
+        ).encode("utf-8")
 
         req = urllib.request.Request(
             self.api_url,
@@ -111,13 +117,15 @@ class GenericAdapter(Adapter):
             logger.error("OpenAI-compat API call failed: %s", e)
             return None
 
-    def _send_http(self, system_prompt: str, user_prompt: str) -> Optional[str]:
+    def _send_http(self, system_prompt: str, user_prompt: str) -> str | None:
         """Send via custom HTTP endpoint."""
-        payload = json.dumps({
-            "system": system_prompt,
-            "prompt": user_prompt,
-            "model": self.model,
-        }).encode("utf-8")
+        payload = json.dumps(
+            {
+                "system": system_prompt,
+                "prompt": user_prompt,
+                "model": self.model,
+            }
+        ).encode("utf-8")
 
         req = urllib.request.Request(
             self.api_url,
@@ -132,7 +140,7 @@ class GenericAdapter(Adapter):
             logger.error("HTTP API call failed: %s", e)
             return None
 
-    def _send_command(self, system_prompt: str, user_prompt: str) -> Optional[str]:
+    def _send_command(self, system_prompt: str, user_prompt: str) -> str | None:
         """Send via shell command (stdin → stdout).
 
         Supports:

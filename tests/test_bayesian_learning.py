@@ -1,9 +1,8 @@
 """Tests for Bayesian Learning module."""
 
 import pytest
-from datetime import datetime, timedelta
 
-from revive_my_lover.bayesian import StateEstimator, BayesianLearner, State
+from revive_my_lover.bayesian import BayesianLearner, State, StateEstimator
 
 
 @pytest.fixture
@@ -133,13 +132,13 @@ class TestLearn:
             learner.record(state=State.IDLE_ONLINE)
         params1 = learner.learn()
         confidence1 = params1["confidence"]
-        
+
         # Record 50 more observations
         for _ in range(50):
             learner.record(state=State.IDLE_ONLINE)
         params2 = learner.learn()
         confidence2 = params2["confidence"]
-        
+
         assert confidence2 > confidence1
 
     def test_learn_transition_counts(self, learner):
@@ -150,10 +149,10 @@ class TestLearn:
         learner.record(state=State.IDLE_ONLINE)
         learner.record(state=State.BUSY)
         learner.record(state=State.IDLE_ONLINE)
-        
+
         params = learner.learn()
         transitions = params["transitions"]
-        
+
         # Check that idle → busy transition exists
         assert State.BUSY in transitions[State.IDLE_ONLINE]
         # Check probability is reasonable
@@ -188,7 +187,7 @@ class TestGetInsights:
             learner.record(state=State.IDLE_ONLINE)
         for _ in range(2):
             learner.record(state=State.BUSY)
-        
+
         insights = learner.get_insights()
         assert insights["most_likely_state"] == "idle"
 
@@ -200,9 +199,9 @@ class TestReset:
         """Reset clears all data."""
         for _ in range(10):
             learner.record(state=State.IDLE_ONLINE)
-        
+
         learner.reset()
-        
+
         assert learner.observation_count == 0
         assert learner._last_state is None
         assert len(learner._recent) == 0
@@ -222,12 +221,12 @@ class TestEstimatorIntegration:
                 reply_speed=0.8,
                 hour=14.0,
             )
-        
+
         params = learner.learn()
-        
+
         # Update estimator
         estimator.update_params(params)
-        
+
         # Check that learned parameters are stored
         assert estimator._learned_likelihoods is not None
         assert estimator._learned_temporal is not None
@@ -236,7 +235,7 @@ class TestEstimatorIntegration:
         """Estimator uses learned parameters."""
         # Create learner with specific patterns
         learner = BayesianLearner(min_observations=5)
-        
+
         # Simulate user who is always BUSY at 14:00
         for _ in range(20):
             learner.record(
@@ -246,15 +245,15 @@ class TestEstimatorIntegration:
                 hour=14.0,
                 silence_hours=4.0,
             )
-        
+
         params = learner.learn()
         estimator.update_params(params)
-        
+
         # Test at 14:00
         estimator.reset()
         estimator.update(hour=14.0)
         state, _ = estimator.most_likely()
-        
+
         # Should likely be BUSY
         assert state in [State.BUSY, State.IDLE_ONLINE]
 
@@ -273,7 +272,7 @@ class TestEdgeCases:
         """Learning with single state only."""
         for _ in range(10):
             learner.record(state=State.IDLE_ONLINE)
-        
+
         params = learner.learn()
         # Should still have all states in transitions
         for state in State:
@@ -282,10 +281,10 @@ class TestEdgeCases:
     def test_window_size_limit(self, learner):
         """Recent window is limited."""
         learner = BayesianLearner(window_size=10)
-        
+
         # Record 20 observations
         for _ in range(20):
             learner.record(state=State.IDLE_ONLINE)
-        
+
         # Recent window should be limited
         assert len(learner._recent) == 10

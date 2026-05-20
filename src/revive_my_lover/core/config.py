@@ -1,15 +1,16 @@
 """Configuration loader for revive-my-lover."""
 
 from __future__ import annotations
-import yaml
+
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional
+
+import yaml
 
 
 @dataclass
 class Window:
-    start: float   # hour (0-24)
+    start: float  # hour (0-24)
     end: float
     weight: float  # probability weight
 
@@ -45,7 +46,7 @@ class Config:
     def from_yaml(cls, path: str | Path) -> Config:
         """Load config from a YAML file."""
         path = Path(path)
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             data = yaml.safe_load(f) or {}
 
         return cls.from_dict(data)
@@ -58,11 +59,13 @@ class Config:
 
         windows = []
         for w in eng_data.get("windows", []):
-            windows.append(Window(
-                start=_parse_hour(w["start"]),
-                end=_parse_hour(w["end"]),
-                weight=w.get("weight", 1.0),
-            ))
+            windows.append(
+                Window(
+                    start=_parse_hour(w["start"]),
+                    end=_parse_hour(w["end"]),
+                    weight=w.get("weight", 1.0),
+                )
+            )
 
         engagement = EngagementConfig(
             strategy=eng_data.get("strategy", "poisson"),

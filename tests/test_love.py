@@ -1,10 +1,10 @@
 """Tests for unified PoissonLove API."""
 
-import pytest
 from datetime import datetime, timedelta
 
-from revive_my_lover.love import PoissonLove, LoveResult
-from revive_my_lover.core.models import Action
+import pytest
+
+from revive_my_lover.love import LoveResult, PoissonLove
 
 
 @pytest.fixture
@@ -42,17 +42,17 @@ class TestTick:
         """Result has all required fields."""
         now = datetime(2026, 5, 20, 10, 0)
         result = love.tick(now=now)
-        assert hasattr(result, 'should_send')
-        assert hasattr(result, 'stage')
-        assert hasattr(result, 'poisson_hit')
-        assert hasattr(result, 'infogain_passed')
-        assert hasattr(result, 'user_state')
-        assert hasattr(result, 'send_utility')
-        assert hasattr(result, 'lambda_rate')
-        assert hasattr(result, 'probability')
-        assert hasattr(result, 'info_gain')
-        assert hasattr(result, 'prompt')
-        assert hasattr(result, 'reason')
+        assert hasattr(result, "should_send")
+        assert hasattr(result, "stage")
+        assert hasattr(result, "poisson_hit")
+        assert hasattr(result, "infogain_passed")
+        assert hasattr(result, "user_state")
+        assert hasattr(result, "send_utility")
+        assert hasattr(result, "lambda_rate")
+        assert hasattr(result, "probability")
+        assert hasattr(result, "info_gain")
+        assert hasattr(result, "prompt")
+        assert hasattr(result, "reason")
 
     def test_poisson_miss_blocks(self, love):
         """If Poisson misses, should_send is False."""

@@ -5,9 +5,9 @@ Each returns a signal value (0-1) representing "how good is this moment to act?"
 """
 
 from __future__ import annotations
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from typing import Optional
+
+from dataclasses import dataclass
+from datetime import datetime
 
 
 @dataclass
@@ -18,11 +18,11 @@ class UserActivitySignal:
     Higher = user is more likely to be responsive.
     """
 
-    last_seen: Optional[datetime] = None
-    last_seen_minutes_ago: Optional[float] = None  # Alternative to last_seen
+    last_seen: datetime | None = None
+    last_seen_minutes_ago: float | None = None  # Alternative to last_seen
     messages_today: int = 0
-    hour: Optional[float] = None
-    now: Optional[datetime] = None
+    hour: float | None = None
+    now: datetime | None = None
 
     def value(self) -> float:
         current = self.now or datetime.now()

@@ -6,9 +6,9 @@ and combine them with CombinedSignal to feed into PIDController.
 """
 
 from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Optional
 
 
 class Signal(ABC):
@@ -84,7 +84,7 @@ class CombinedSignal(Signal):
             return total / weight_sum
         return total
 
-    def add(self, signal: Signal, weight: float = 1.0) -> "CombinedSignal":
+    def add(self, signal: Signal, weight: float = 1.0) -> CombinedSignal:
         """Add a signal and return self for chaining."""
         self._signals.append((signal, weight))
         return self

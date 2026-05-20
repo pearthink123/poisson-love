@@ -15,8 +15,8 @@ Example:
             break
 """
 
-from .core import OptimalStop, StopResult, Decision, StoppingRule, ThresholdRule, SecretaryRule
-from .signals import UserActivitySignal, ConversationPotential, UrgencySignal
+from .core import Decision, OptimalStop, SecretaryRule, StoppingRule, StopResult, ThresholdRule
+from .signals import ConversationPotential, UrgencySignal, UserActivitySignal
 
 __all__ = [
     "OptimalStop",

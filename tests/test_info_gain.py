@@ -3,8 +3,11 @@
 import pytest
 
 from revive_my_lover.info_gain import (
-    InformationGain, InfoSource, GainResult,
-    SilenceDuration, ConversationFlow, MessageNovelty
+    ConversationFlow,
+    InformationGain,
+    InfoSource,
+    MessageNovelty,
+    SilenceDuration,
 )
 
 
@@ -174,6 +177,7 @@ class TestBuiltInSources:
     def test_silence_duration(self):
         """SilenceDuration source works."""
         from datetime import datetime, timedelta
+
         now = datetime(2026, 5, 20, 10, 0)
         last_reply = now - timedelta(hours=2)
         src = SilenceDuration(last_reply_time=last_reply, now=now)
@@ -182,18 +186,12 @@ class TestBuiltInSources:
 
     def test_conversation_flow(self):
         """ConversationFlow source works."""
-        src = ConversationFlow(
-            my_unanswered_messages=2,
-            user_replied_in_last_hour=False
-        )
+        src = ConversationFlow(my_unanswered_messages=2, user_replied_in_last_hour=False)
         assert 0 <= src.entropy() <= 1
         assert 0 <= src.resolution_potential() <= 1
 
     def test_message_novelty(self):
         """MessageNovelty source works."""
-        src = MessageNovelty(
-            recent_messages=["hello", "how are you"],
-            current_message="what's up"
-        )
+        src = MessageNovelty(recent_messages=["hello", "how are you"], current_message="what's up")
         assert 0 <= src.entropy() <= 1
         assert 0 <= src.resolution_potential() <= 1

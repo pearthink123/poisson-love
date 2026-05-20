@@ -3,8 +3,8 @@ Base adapter — interface for all platform adapters.
 """
 
 from __future__ import annotations
+
 from abc import ABC, abstractmethod
-from typing import Optional
 
 from ..core.config import Config
 from ..core.models import TickResult
@@ -42,7 +42,7 @@ class Adapter(ABC):
         ...
 
     @abstractmethod
-    def send(self, system_prompt: str, user_prompt: str) -> Optional[str]:
+    def send(self, system_prompt: str, user_prompt: str) -> str | None:
         """
         Call the AI API and return its response.
 
@@ -55,7 +55,7 @@ class Adapter(ABC):
         """
         ...
 
-    def engage(self, result: TickResult) -> Optional[str]:
+    def engage(self, result: TickResult) -> str | None:
         """
         Full engagement flow: build prompts → call AI → return response.
 

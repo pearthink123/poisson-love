@@ -8,17 +8,15 @@ Can run as:
 """
 
 from __future__ import annotations
-import time
-import json
+
 import logging
+import time
+from collections.abc import Callable
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Optional, Callable
 
-from .core.engine import PoissonEngine
-from .core.config import Config
-from .core.models import TickResult, Action
 from .adapters.base import Adapter
+from .core.models import Action, TickResult
 
 logger = logging.getLogger("revive-my-lover")
 
@@ -41,15 +39,19 @@ class Runner:
         runner.run()
     """
 
-    def __init__(self, engine, adapter: Adapter = None,
-                 on_tick: Callable[[TickResult], None] = None,
-                 log_path: str | Path = None):
+    def __init__(
+        self,
+        engine,
+        adapter: Adapter = None,
+        on_tick: Callable[[TickResult], None] = None,
+        log_path: str | Path = None,
+    ):
         # Support both PoissonEngine and PoissonLove
         self._love = None
         self._engine = None
 
         # Duck-type check for PoissonLove (has .tick() and ._engine)
-        if hasattr(engine, '_engine') and hasattr(engine, '_estimator'):
+        if hasattr(engine, "_engine") and hasattr(engine, "_estimator"):
             # PoissonLove instance
             self._love = engine
             self._engine = engine._engine
@@ -118,8 +120,7 @@ class Runner:
 
             time.sleep(interval_minutes * 60)
 
-    def run_simulation(self, hours: int = 48, interval_minutes: int = None,
-                       start: datetime = None):
+    def run_simulation(self, hours: int = 48, interval_minutes: int = None, start: datetime = None):
         """
         Fast simulation — runs many ticks instantly for testing/visualization.
 
@@ -138,7 +139,7 @@ class Runner:
 
         for i in range(total_ticks):
             tick_time = start + delta * i
-            result = self.tick(tick_time)
+            self.tick(tick_time)
 
         logger.info(f"Simulation complete: {total_ticks} ticks over {hours}h")
 

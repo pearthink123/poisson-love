@@ -9,10 +9,10 @@ Run: PYTHONPATH=src python examples/info_gain_demo.py
 from datetime import datetime, timedelta
 
 from revive_my_lover.info_gain import (
-    InformationGain,
-    SilenceDuration,
-    MessageNovelty,
     ConversationFlow,
+    InformationGain,
+    MessageNovelty,
+    SilenceDuration,
     TimeOfDaySource,
 )
 
@@ -27,9 +27,11 @@ def scenario_1():
         gain = InformationGain(sources=[src], threshold=0.25)
         r = gain.evaluate()
         icon = "✅ SEND" if r.worth_sending else "❌ SKIP"
-        print(f"  {hours:>5.1f}h silence | entropy={src.entropy():.2f} "
-              f"resolution={src.resolution_potential():.2f} | "
-              f"gain={r.gain:.3f} ({r.gain_ratio:.0%}) | {icon}")
+        print(
+            f"  {hours:>5.1f}h silence | entropy={src.entropy():.2f} "
+            f"resolution={src.resolution_potential():.2f} | "
+            f"gain={r.gain:.3f} ({r.gain_ratio:.0%}) | {icon}"
+        )
 
 
 def scenario_2():
@@ -39,13 +41,17 @@ def scenario_2():
 
     src1 = MessageNovelty(recent_messages=recent, current_message="今天天气真好")
     r1 = InformationGain(sources=[src1], threshold=0.25).evaluate()
-    print(f"  新消息  | resolution={src1.resolution_potential():.1f} | "
-          f"gain={r1.gain:.3f} | {'✅' if r1.worth_sending else '❌'}")
+    print(
+        f"  新消息  | resolution={src1.resolution_potential():.1f} | "
+        f"gain={r1.gain:.3f} | {'✅' if r1.worth_sending else '❌'}"
+    )
 
     src2 = MessageNovelty(recent_messages=recent, current_message="在干嘛")
     r2 = InformationGain(sources=[src2], threshold=0.25).evaluate()
-    print(f"  重复消息 | resolution={src2.resolution_potential():.1f} | "
-          f"gain={r2.gain:.3f} | {'✅' if r2.worth_sending else '❌'}")
+    print(
+        f"  重复消息 | resolution={src2.resolution_potential():.1f} | "
+        f"gain={r2.gain:.3f} | {'✅' if r2.worth_sending else '❌'}"
+    )
 
 
 def scenario_3():
@@ -53,17 +59,25 @@ def scenario_3():
     print("\n=== Scenario 3: Conversation Flow ===\n")
 
     cases = [
-        ("活跃对话 (用户刚回)", ConversationFlow(user_replied_in_last_hour=True, messages_in_last_hour=5)),
-        ("沉默 (啥也没发生)", ConversationFlow(user_replied_in_last_hour=False, messages_in_last_hour=0)),
+        (
+            "活跃对话 (用户刚回)",
+            ConversationFlow(user_replied_in_last_hour=True, messages_in_last_hour=5),
+        ),
+        (
+            "沉默 (啥也没发生)",
+            ConversationFlow(user_replied_in_last_hour=False, messages_in_last_hour=0),
+        ),
         ("已发1条没回", ConversationFlow(my_unanswered_messages=1)),
         ("已发3条没回", ConversationFlow(my_unanswered_messages=3)),
     ]
     for label, src in cases:
         r = InformationGain(sources=[src], threshold=0.25).evaluate()
         icon = "✅ SEND" if r.worth_sending else "❌ SKIP"
-        print(f"  {label} | entropy={src.entropy():.1f} "
-              f"resolution={src.resolution_potential():.1f} | "
-              f"gain={r.gain:.3f} | {icon}")
+        print(
+            f"  {label} | entropy={src.entropy():.1f} "
+            f"resolution={src.resolution_potential():.1f} | "
+            f"gain={r.gain:.3f} | {icon}"
+        )
 
 
 def scenario_4():
@@ -77,7 +91,7 @@ def scenario_4():
     for i in range(6):
         r = gain.evaluate()
         icon = "✅ SEND" if r.worth_sending else "❌ SKIP"
-        print(f"  第{i+1}条 | gain={r.gain:.3f} ({r.gain_ratio:.0%}) | {icon}  {r.reason}")
+        print(f"  第{i + 1}条 | gain={r.gain:.3f} ({r.gain_ratio:.0%}) | {icon}  {r.reason}")
         gain.on_send()
 
 
@@ -97,7 +111,7 @@ def scenario_5():
     ]
     gain = InformationGain(sources=sources, threshold=0.25)
     r = gain.evaluate()
-    print(f"  3h沉默 + 晚上8点 + 新话题")
+    print("  3h沉默 + 晚上8点 + 新话题")
     for s in sources:
         name = s.__class__.__name__
         print(f"    {name}: entropy={s.entropy():.2f} resolution={s.resolution_potential():.2f}")
