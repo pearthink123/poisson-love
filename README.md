@@ -302,6 +302,14 @@ It's not random chaos. It's not rigid scheduling. It's **structured spontaneity*
 
 ---
 
+## What's Next
+
+This is the **stable base** — focused on smart timing, not deep emotion.
+
+For memory-triggered longing, relationship state machines, and emotional cost modeling, see the upcoming **emotional extension** (coming soon).
+
+---
+
 ## License
 
 MIT

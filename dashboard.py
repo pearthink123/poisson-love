@@ -236,7 +236,7 @@ st.markdown("---")
 st.markdown(
     """
     <div style="text-align: center; color: #888;">
-        💘 revive-my-lover v0.9.0 |
+        💘 revive-my-lover v1.0.0 |
         <a href="https://github.com/pearthink123/revive-my-lover">GitHub</a> |
         Math models that make AI engagement feel human
     </div>

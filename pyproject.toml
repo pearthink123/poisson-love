@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "revive-my-lover"
-version = "0.9.0"
+version = "1.0.0"
 description = "Math models that make AI engagement feel human. Poisson timing + Bayesian state inference + Information theory."
 readme = "README.md"
 license = { text = "MIT" }
